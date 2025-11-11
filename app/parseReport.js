@@ -3,6 +3,13 @@ import fs from "fs";
 import fetch from "node-fetch";
 import { Parser } from "htmlparser2";
 
+import dotenv from 'dotenv';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, './.env') });
+
 // Return the appropriate key for the report table
 function matchForKeyword(str) {
     const patterns = {
@@ -115,7 +122,7 @@ export async function parseFinancialStatementURL(url) {
     // Create appropriate request so EDGAR wouldn't mark it as spam
     const res = await fetch(url, {
         headers: {
-            "User-Agent": "Download10Q/1.0 (contact: windyhuang999@gmail.com)"
+            "User-Agent": `Download10Q/1.0 (contact: ${process.env.EMAIL})`
         }
     });
     if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
