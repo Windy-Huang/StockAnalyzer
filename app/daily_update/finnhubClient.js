@@ -1,16 +1,6 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
-
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load the .env from /app/
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+const axios = require("axios");
+const dotenv = require("dotenv");
+dotenv.config({ path: path.resolve(__dirname, './.env') });
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const BASE_URL = 'https://finnhub.io/api/v1';
@@ -18,7 +8,7 @@ const BASE_URL = 'https://finnhub.io/api/v1';
 /**
  * Fetch latest quote data for ticker
  */
-export async function getStockQuote(ticker) {
+async function getStockQuote(ticker) {
   try {
     const url = `${BASE_URL}/quote?symbol=${ticker}&token=${FINNHUB_API_KEY}`;
     console.log('Using API key:', FINNHUB_API_KEY);
@@ -31,8 +21,13 @@ export async function getStockQuote(ticker) {
 /**
  * Fetch company news between two dates
  */
-export async function getCompanyNews(ticker, from, to) {
+async function getCompanyNews(ticker, from, to) {
   const url = `${BASE_URL}/company-news?symbol=${ticker}&from=${from}&to=${to}&token=${FINNHUB_API_KEY}`;
   const response = await axios.get(url);
   return response.data;
 }
+
+module.exports = {
+    getStockQuote,
+    getCompanyNews
+};

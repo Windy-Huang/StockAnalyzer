@@ -1,14 +1,11 @@
 // Class for handling report parsing
-import fs from "fs";
-import fetch from "node-fetch";
-import { Parser } from "htmlparser2";
+const fs = require("fs");
+const fetch = require("node-fetch");
+const { Parser } = require("htmlparser2");
 
-import dotenv from 'dotenv';
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-dotenv.config({ path: resolve(__dirname, './.env') });
+const dotenv = require("dotenv");
+const path = require("path");
+dotenv.config({ path: path.resolve(__dirname, './.env') });
 
 // Return the appropriate key for the report table
 function matchForKeyword(str) {
@@ -112,13 +109,13 @@ async function createParser(stream) {
 }
 
 // Calls HTML parser with local file
-export async function parseFinancialStatementLocal(link) {
+async function parseFinancialStatementLocal(link) {
     const stream = fs.createReadStream(link, { encoding: "utf8" });
     return await createParser(stream);
 }
 
 // Calls HTMl parser with online file (via url)
-export async function parseFinancialStatementURL(url) {
+async function parseFinancialStatementURL(url) {
     // Create appropriate request so EDGAR wouldn't mark it as spam
     const res = await fetch(url, {
         headers: {
@@ -132,6 +129,10 @@ export async function parseFinancialStatementURL(url) {
     return await createParser(stream);
 }
 
+module.exports = {
+    parseFinancialStatementLocal,
+    parseFinancialStatementURL
+};
 
 // Unit test illustrating how to use the local and url HTML parser
 (async () => {
