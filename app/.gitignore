@@ -11,6 +11,9 @@ node_modules/
 .vscode/
 .idea/
 
+# Ignore env files, this way each group member can keep their own credentials for database and API connections
+.env
+
 # Mac files
 .DS_Store
 

@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "node_demo_project",
   "version": "1.0.0",
   "description": "The sample Node.js project for CPSC304.",

@@ -1,3 +1,17 @@
+-- =========================================================
+-- DROP existing objects (ignore errors if they don’t exist)
+-- =========================================================
+BEGIN
+    FOR t IN (SELECT table_name FROM user_tables) LOOP
+        EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS';
+    END LOOP;
+
+    FOR s IN (SELECT sequence_name FROM user_sequences) LOOP
+        EXECUTE IMMEDIATE 'DROP SEQUENCE ' || s.sequence_name;
+    END LOOP;
+END;
+/
+
 -- Table declaration
 
 CREATE TABLE Company(
@@ -44,7 +58,6 @@ CREATE TABLE Divident(
 	amountPerShare FLOAT,
 	dividentType VARCHAR(255)
 );
-
 CREATE TABLE PriceHistory(
 	priceHistoryID INT PRIMARY KEY,
 	timestamp DATE,
@@ -56,6 +69,13 @@ CREATE TABLE PriceHistory(
 	ticker VARCHAR(255) NOT NULL,
 	FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
 );
+
+-- sequence for auto-incrementing PriceHistory IDs
+CREATE SEQUENCE priceHistory_seq
+	START WITH 6       -- since you already insert 5 sample rows
+	INCREMENT BY 1
+	NOCACHE
+	NOCYCLE;
 
 CREATE TABLE Users(
 	email VARCHAR(255) PRIMARY KEY,

@@ -1,7 +1,8 @@
 const oracledb = require('oracledb');
-const loadEnvFile = require('./utils/envUtil');
+const loadEnvFile = require('./utils/envUtil.cjs');
 
-const envVariables = loadEnvFile('./.env');
+const path = require('path');
+const envVariables = loadEnvFile(path.resolve(__dirname, './.env'));
 
 // Database configuration setup. Ensure your .env file has the required database credentials.
 const dbConfig = {
@@ -36,7 +37,6 @@ async function closePoolAndExit() {
     }
 }
 
-initializeConnectionPool();
 
 process
     .once('SIGTERM', closePoolAndExit)
@@ -46,6 +46,8 @@ process
 // ----------------------------------------------------------
 // Wrapper to manage OracleDB actions, simplifying connection handling.
 async function withOracleDB(action) {
+    await poolReady;
+
     let connection;
     try {
         connection = await oracledb.getConnection(); // Gets a connection from the default pool 
@@ -142,7 +144,11 @@ async function countDemotable() {
     });
 }
 
+// other modules can check to make sure connection is connected before proceeding
+const poolReady = initializeConnectionPool();
 module.exports = {
+    poolReady,
+    withOracleDB,
     testOracleConnection,
     fetchDemotableFromDb,
     initiateDemotable, 
