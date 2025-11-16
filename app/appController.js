@@ -1,6 +1,6 @@
 const express = require('express');
 const appService = require('./appService');
-const {initializeWithSP500} = require("./startupScript");
+const {initializeWithSP500, getCompany10Q, getCompanyProfile} = require("./startupScript");
 
 const router = express.Router();
 
@@ -80,12 +80,16 @@ router.post("/initiate-db", async (req, res) => {
 });
 
 router.post("/insert-db", async (req, res) => {
-    const rejected = await initializeWithSP500(appService.insertDBperCompany);
+    let rejected = await initializeWithSP500(appService.insertDBperCompany, getCompanyProfile, 30);
     if (!rejected) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
+        console.log(`Waiting 65s before inserting report...`);
+        await new Promise(resolve => setTimeout(resolve, 65000));
+        rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 10);
+        if (!rejected) {
+            res.json({ success: true });
+        }
     }
+    if (rejected) res.status(500).json({ success: false });
 });
 
 router.get('/log', async (req, res) => {

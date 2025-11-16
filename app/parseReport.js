@@ -10,11 +10,11 @@ dotenv.config({ path: path.resolve(__dirname, './.env') });
 // Return the appropriate key for the report table
 function matchForKeyword(str) {
     const patterns = {
-        revenue: /(revenue|net sales)/i,
+        revenue: /((net|total) (revenue|sales)|^revenue$)/i,
         income: /^net income$/i,
         eps: /(basic|diluted)/i,
-        liabilities: /^total liabilities$/i,
-        equity: /^total liabilities and.*equity$/i
+        liabilities: /^total liabilities and.*equity$/i,
+        equity: /^total (share|stock)holder.*equity$/i
     }
 
     for (const [key, regex] of Object.entries(patterns)) {
@@ -88,7 +88,7 @@ async function createParser(stream) {
                     if (currentKey && currentValue && !report.has(currentKey)) {
                         report.set(currentKey, currentValue);
                         if (report.size === 5) {
-                            report.set("equity", report.get("equity") - report.get("liabilities"));
+                            report.set("liabilities", report.get("liabilities") - report.get("equity"));
                             stream.destroy();
                             parser.end();
                         }
@@ -135,14 +135,14 @@ module.exports = {
 };
 
 // Unit test illustrating how to use the local and url HTML parser
-(async () => {
-    try {
-        let result = await parseFinancialStatementURL("https://www.sec.gov/Archives/edgar/data/320193/000032019325000073/aapl-20250628.htm#i47143780af9f4d3d85123ce19d9f33bd_13");
-        console.log(result);
-        result = await parseFinancialStatementLocal("./example.html");
-        console.log(result);
-    } catch (err) {
-        console.error("Error:", err);
-    }
-})();
+// (async () => {
+//     try {
+//         let result = await parseFinancialStatementURL("https://www.sec.gov/Archives/edgar/data/320193/000032019325000073/aapl-20250628.htm#i47143780af9f4d3d85123ce19d9f33bd_13");
+//         console.log(result);
+//         result = await parseFinancialStatementLocal("./example.html");
+//         console.log(result);
+//     } catch (err) {
+//         console.error("Error:", err);
+//     }
+// })();
 

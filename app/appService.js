@@ -150,6 +150,12 @@ async function initiateDB() {
         try {
             await connection.execute('DROP TABLE Exchange CASCADE CONSTRAINTS');
         } catch (err) { console.log('Exchange might not exist'); }
+        try {
+            await connection.execute('DROP TABLE DebtEquity CASCADE CONSTRAINTS');
+        } catch (err) { console.log('DebtEquity might not exist'); }
+        try {
+            await connection.execute('DROP TABLE Report CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Report might not exist'); }
 
         await connection.execute(`
             CREATE TABLE Exchange(
@@ -165,6 +171,27 @@ async function initiateDB() {
                 exchange VARCHAR(255),
                 marketCap FLOAT,
                 FOREIGN KEY (exchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
+            )`);
+        await connection.execute(`
+            CREATE TABLE DebtEquity(
+                totalDebt NUMBER,
+                equity NUMBER,
+                debtEquityRatio FLOAT,
+                PRIMARY KEY (equity, totalDebt)
+            )`);
+        await connection.execute(`
+            CREATE TABLE Report(
+                reportID VARCHAR(255) PRIMARY KEY,
+                timestamp DATE,
+                fiscalYear NUMBER,
+                revenue NUMBER,
+                netIncome NUMBER,
+                EPS FLOAT,
+                totalDebt NUMBER,
+                equity NUMBER,
+                ticker VARCHAR(255) NOT NULL,
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
+                FOREIGN KEY (equity, totalDebt) REFERENCES DebtEquity(equity, totalDebt) ON DELETE CASCADE
             )`);
         console.log("db initiate finished");
         return true;
@@ -205,6 +232,29 @@ async function insertDBperCompany(data) {
     });
 }
 
+async function insertReportPerCompany(obj) {
+    return await withOracleDB(async (connection) => {
+        const data = Object.fromEntries(obj);
+        await connection.execute(`
+            INSERT INTO DebtEquity
+            VALUES (:1, :2, :3)`,
+            [data["liabilities"], data["equity"], data["liabilities"] / data["equity"]],
+            { autoCommit: true }
+        );
+        let result = await connection.execute(`
+            INSERT INTO Report
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)`,
+            [data["id"], new Date(data["timestamp"]), data["year"], data["revenue"], data["income"], data["eps"], data["liabilities"], data["equity"], data["ticker"]],
+            { autoCommit: true }
+        );
+        console.log("insert report finished " + data["ticker"]);
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch((err) => {
+        console.error("Insert failed : ", data["ticker"], err);
+        return false;
+    });
+}
+
 async function logFromDb() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT * FROM Stock');
@@ -223,5 +273,6 @@ module.exports = {
     countDemotable,
     initiateDB,
     insertDBperCompany,
+    insertReportPerCompany,
     logFromDb
 };
