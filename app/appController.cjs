@@ -1,5 +1,6 @@
 const express = require('express');
 const appService = require('./appService.cjs');
+const {initializeWithSP500, getCompany10Q, getReportByAccessNum, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript.cjs");
 
 const router = express.Router();
 
@@ -64,5 +65,61 @@ router.get('/count-demotable', async (req, res) => {
     }
 });
 
+router.post("/initiate-db", async (req, res) => {
+    try {
+        const initiateResult = await appService.initiateDB();
+        if (initiateResult) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ success: false });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+router.post("/insert-db", async (req, res) => {
+    let rejected = await initializeWithSP500(appService.insertDBperCompany, getCompanyProfile, 30);
+    if (!rejected) {
+        console.log(`Waiting 65s before inserting report...`);
+        await new Promise(resolve => setTimeout(resolve, 65000));
+        rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 10);
+        if (!rejected) {
+            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 30);
+            if (!rejected) res.json({ success: true });
+        }
+    }
+    if (rejected) res.status(500).json({ success: false });
+});
+
+// Error code
+// 404 means provided accessNum is invalid
+// 422 means error in parsing, requires user assistance
+// 500 means error in DB insertion
+router.post("/insert-report", async (req, res) => {
+    const { accessNum } = req.body;
+    console.log(accessNum);
+    const parsedReport = await getReportByAccessNum(accessNum);
+    if (parsedReport) {
+        if (parsedReport.size < 9) {
+            res.status(422).json({ success: false, report: Object.fromEntries(parsedReport) });
+        } else {
+            const result = await appService.insertReportPerCompany(parsedReport);
+            if (result) {
+                res.json({ success: true });
+            } else {
+                res.status(500).json({ success: false });
+            }
+        }
+    } else {
+        res.status(404).json({ success: false });
+    }
+});
+
+router.get('/log', async (req, res) => {
+    const tableContent = await appService.logFromDb();
+    res.json({data: tableContent});
+});
 
 module.exports = router;

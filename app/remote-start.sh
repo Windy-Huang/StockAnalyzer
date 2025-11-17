@@ -47,7 +47,7 @@ for PORT in $(seq $START $END); do
         kill $TEMP_PID
 
         # Replace the bash process with the Node process
-        exec node server.cjs
+        exec node --no-experimental-fetch server.cjs
         break
     fi
 done

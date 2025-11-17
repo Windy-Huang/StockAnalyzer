@@ -144,6 +144,169 @@ async function countDemotable() {
     });
 }
 
+async function initiateDB() {
+    return await withOracleDB(async (connection) => {
+        try {
+            await connection.execute('DROP TABLE PriceHistory CASCADE CONSTRAINTS');
+        } catch (err) { console.log('PriceHistory might not exist'); }
+        try {
+            await connection.execute('DROP TABLE Stock CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Stock might not exist'); }
+        try {
+            await connection.execute('DROP TABLE Exchange CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Exchange might not exist'); }
+        try {
+            await connection.execute('DROP TABLE DebtEquity CASCADE CONSTRAINTS');
+        } catch (err) { console.log('DebtEquity might not exist'); }
+        try {
+            await connection.execute('DROP TABLE Report CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Report might not exist'); }
+
+        await connection.execute(`
+            CREATE TABLE Exchange(
+                exchange VARCHAR(255) PRIMARY KEY,
+                currency CHAR(3)
+            )`);
+        await connection.execute(`
+            CREATE TABLE Stock(
+                ticker VARCHAR(255) PRIMARY KEY,
+                name VARCHAR(255),
+                country VARCHAR(255),
+                industry VARCHAR(255),
+                exchange VARCHAR(255),
+                marketCap FLOAT,
+                FOREIGN KEY (exchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
+            )`);
+        await connection.execute(`
+            CREATE TABLE PriceHistory(
+                priceHistoryID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                timestamp DATE,
+                openPrice FLOAT,
+                highPrice FLOAT,
+                lowPrice FLOAT,
+                closePrice FLOAT,
+                volume NUMBER,
+                ticker VARCHAR(255) NOT NULL,
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
+            )`);
+        await connection.execute(`
+            CREATE TABLE DebtEquity(
+                totalDebt NUMBER,
+                equity NUMBER,
+                debtEquityRatio FLOAT,
+                PRIMARY KEY (equity, totalDebt)
+            )`);
+        await connection.execute(`
+            CREATE TABLE Report(
+                reportID VARCHAR(255) PRIMARY KEY,
+                timestamp DATE,
+                fiscalYear NUMBER,
+                revenue NUMBER,
+                netIncome NUMBER,
+                EPS FLOAT,
+                totalDebt NUMBER,
+                equity NUMBER,
+                ticker VARCHAR(255) NOT NULL,
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
+                FOREIGN KEY (equity, totalDebt) REFERENCES DebtEquity(equity, totalDebt) ON DELETE CASCADE
+            )`);
+        console.log("db initiate finished");
+        return true;
+    }).catch((err) => {
+        console.error("InitiateDB failed: ", err);
+        return false;
+    });
+}
+
+async function insertDBperCompany(data) {
+    return await withOracleDB(async (connection) => {
+        let result = await connection.execute(`
+            SELECT COUNT(*)
+            FROM Exchange
+            WHERE exchange = :1`,
+            [data["exchange"]],
+            { autoCommit: true }
+        );
+        if (result.rows[0][0] === 0) {
+            await connection.execute(`
+                INSERT INTO Exchange
+                VALUES (:1, :2)`,
+                [data["exchange"], data["currency"]],
+                { autoCommit: true }
+            );
+        }
+        result = await connection.execute(`
+            INSERT INTO Stock
+            VALUES (:1, :2, :3, :4, :5, :6)`,
+            [data["ticker"], data["name"], data["country"], data["finnhubIndustry"], data["exchange"], data["marketCapitalization"]],
+            { autoCommit: true }
+        );
+        console.log("insert stock finished " + data["ticker"]);
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch((err) => {
+        console.error("Insert failed : ", data["ticker"], err);
+        return false;
+    });
+}
+
+async function insertReportPerCompany(obj) {
+    return await withOracleDB(async (connection) => {
+        const data = Object.fromEntries(obj);
+        await connection.execute(`
+            INSERT INTO DebtEquity
+            VALUES (:1, :2, :3)`,
+            [data["liabilities"], data["equity"], data["liabilities"] / data["equity"]],
+            { autoCommit: true }
+        );
+        let result = await connection.execute(`
+            INSERT INTO Report
+            VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)`,
+            [data["id"], new Date(data["timestamp"]), data["year"], data["revenue"], data["income"], data["eps"], data["liabilities"], data["equity"], data["ticker"]],
+            { autoCommit: true }
+        );
+        console.log("insert report finished " + data["ticker"]);
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch((err) => {
+        console.error("Insert failed : ", data["ticker"], err);
+        return false;
+    });
+}
+
+async function insertPricePerStock(obj) {
+    return await withOracleDB(async (connection) => {
+        const ticker = obj["ticker"];
+        const data = obj["data"].map(([date, info]) => [
+            new Date(date),
+            parseFloat(info["1. open"]),
+            parseFloat(info["2. high"]),
+            parseFloat(info["3. low"]),
+            parseFloat(info["4. close"]),
+            parseInt(info["5. volume"], 10),
+            ticker
+        ]);
+        let result = await connection.executeMany(`
+            INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+            VALUES (:1, :2, :3, :4, :5, :6, :7)`,
+            data,
+            { autoCommit: true }
+        );
+        console.log("insert history price finished: " + ticker + " rows: " + result.rowsAffected);
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch((err) => {
+        console.error("Insert failed : ", ticker, err);
+        return false;
+    });
+}
+
+async function logFromDb() {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute('SELECT * FROM Stock');
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
@@ -151,8 +314,13 @@ module.exports = {
     withOracleDB,
     testOracleConnection,
     fetchDemotableFromDb,
-    initiateDemotable, 
-    insertDemotable, 
-    updateNameDemotable, 
-    countDemotable
+    initiateDemotable,
+    insertDemotable,
+    updateNameDemotable,
+    countDemotable,
+    initiateDB,
+    insertDBperCompany,
+    insertReportPerCompany,
+    insertPricePerStock,
+    logFromDb
 };

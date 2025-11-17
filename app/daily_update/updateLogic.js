@@ -40,9 +40,9 @@ export async function updatePriceHistory() {
         if (upd.rowsAffected === 0) {
           await connection.execute(
             `INSERT INTO PriceHistory
-               (priceHistoryID, timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+               (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
              VALUES
-               (priceHistory_seq.NEXTVAL, :timestamp, :open, :high, :low, :close, :volume, :ticker)`,
+               (:timestamp, :open, :high, :low, :close, :volume, :ticker)`,
             { ticker, timestamp, open, high, low, close, volume }
           );
           console.log(`Inserted ${ticker}: ${close}`);

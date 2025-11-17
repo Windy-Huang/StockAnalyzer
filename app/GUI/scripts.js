@@ -154,17 +154,61 @@ async function countDemotable() {
     }
 }
 
+async function initDB() {
+    console.log("start");
+    let response = await fetch("/initiate-db", {
+        method: 'POST'
+    });
+    await response.json();
+    console.log("finished initiate");
+    response = await fetch("/insert-db", {
+        method: 'POST'
+    });
+    console.log("finished insert");
+}
+
+async function insertTest(event) {
+    event.preventDefault();
+
+    const accessNum = document.getElementById('insertName').value;
+    const response = await fetch('/insert-report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            accessNum: accessNum
+        })
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('insertResultMsg');
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            messageElement.textContent = "invalid accessNUM";
+        } else if (response.status === 422) {
+            messageElement.textContent = "cannot parse, help me";
+            console.log(responseData.report);
+        } else {
+            messageElement.textContent = "Error inserting data!";
+        }
+    } else {
+        messageElement.textContent = "Data inserted successfully!";
+    }
+}
 
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    checkDbConnection();
-    fetchTableData();
-    document.getElementById("resetDemotable").addEventListener("click", resetDemotable);
-    document.getElementById("insertDemotable").addEventListener("submit", insertDemotable);
-    document.getElementById("updataNameDemotable").addEventListener("submit", updateNameDemotable);
-    document.getElementById("countDemotable").addEventListener("click", countDemotable);
+    // checkDbConnection();
+    // fetchTableData();
+    // document.getElementById("resetDemotable").addEventListener("click", resetDemotable);
+    // document.getElementById("insertDemotable").addEventListener("submit", insertTest);
+    // document.getElementById("updataNameDemotable").addEventListener("submit", updateNameDemotable);
+    // document.getElementById("countDemotable").addEventListener("click", test);
+    document.getElementById("initDB").addEventListener("click", initDB);
 };
 
 // General function to refresh the displayed table data. 

@@ -13,26 +13,19 @@ END;
 /
 
 -- Table declaration
-
-CREATE TABLE Company(
-	companyID INT PRIMARY KEY,
-	name VARCHAR(255),
-	industry VARCHAR(255),
-	country VARCHAR(255)
-);
-
 CREATE TABLE Exchange(
 	exchange VARCHAR(255) PRIMARY KEY,
 	currency CHAR(3)
 );
 
 CREATE TABLE Stock(
-	ticker VARCHAR(255) PRIMARY KEY,
-	companyID INT UNIQUE NOT NULL,
-	exchange VARCHAR(255),
-	marketCap NUMBER(14, 0),
-	FOREIGN KEY (companyID) REFERENCES Company(companyID) ON DELETE CASCADE,
-	FOREIGN KEY (exchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
+    ticker VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255),
+    country VARCHAR(255),
+    industry VARCHAR(255),
+    exchange VARCHAR(255),
+    marketCap FLOAT,
+    FOREIGN KEY (exchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
 );
 
 -- IsA implemented with no table for corporate action, since the constraint is total and disjoint
@@ -59,23 +52,24 @@ CREATE TABLE Divident(
 	dividentType VARCHAR(255)
 );
 CREATE TABLE PriceHistory(
-	priceHistoryID INT PRIMARY KEY,
+    priceHistoryID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	timestamp DATE,
 	openPrice FLOAT,
 	highPrice FLOAT,
 	lowPrice FLOAT,
 	closePrice FLOAT,
-	volume INT,
+	volume NUMBER,
 	ticker VARCHAR(255) NOT NULL,
 	FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
 );
 
+-- If priceHistoryID is not specified, it will auto increment
 -- sequence for auto-incrementing PriceHistory IDs
-CREATE SEQUENCE priceHistory_seq
-	START WITH 6       -- since you already insert 5 sample rows
-	INCREMENT BY 1
-	NOCACHE
-	NOCYCLE;
+-- CREATE SEQUENCE priceHistory_seq
+-- 	START WITH 6       -- since you already insert 5 sample rows
+-- 	INCREMENT BY 1
+-- 	NOCACHE
+-- 	NOCYCLE;
 
 CREATE TABLE Users(
 	email VARCHAR(255) PRIMARY KEY,
@@ -92,24 +86,24 @@ CREATE TABLE Holds(
 );
 
 CREATE TABLE DebtEquity(
-	totalDebt INT,
-	equity INT,
-	debtEquityRatio FLOAT,
-	PRIMARY KEY (equity, totalDebt)
+    totalDebt NUMBER,
+    equity NUMBER,
+    debtEquityRatio FLOAT,
+    PRIMARY KEY (equity, totalDebt)
 );
 
 CREATE TABLE Report(
-	reportID VARCHAR(12) PRIMARY KEY,
-	timestamp DATE,
-	fiscalYear INT,
-	revenue INT,
-	netIncome INT,
-	EPS FLOAT,
-	totalDebt INT,
-	equity INT,
-	ticker VARCHAR(255) NOT NULL,
-	FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
-	FOREIGN KEY (equity, totalDebt) REFERENCES DebtEquity(equity, totalDebt) ON DELETE CASCADE
+    reportID VARCHAR(255) PRIMARY KEY,
+    timestamp DATE,
+    fiscalYear NUMBER,
+    revenue NUMBER,
+    netIncome NUMBER,
+    EPS FLOAT,
+    totalDebt NUMBER,
+    equity NUMBER,
+    ticker VARCHAR(255) NOT NULL,
+    FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
+    FOREIGN KEY (equity, totalDebt) REFERENCES DebtEquity(equity, totalDebt) ON DELETE CASCADE
 );
 
 CREATE TABLE AnalystRating(
@@ -141,17 +135,6 @@ CREATE TABLE Derives(
 
 
 -- Insert into table
-INSERT INTO Company
-VALUES (1, 'Apple Inc.', 'Technology', 'United States');
-INSERT INTO Company
-VALUES (2, 'Microsoft Corporation', 'Technology', 'United States');
-INSERT INTO Company
-VALUES (3, 'Morgan Stanley', 'Financial Services', 'United States');
-INSERT INTO Company
-VALUES (4, 'Bank of Montreal', 'Financial Services', 'Canada');
-INSERT INTO Company
-VALUES (5, 'The Boeing Company', 'Industrials', 'United States');
-
 INSERT INTO Exchange
 VALUES ('NASDAQ', 'USD');
 INSERT INTO Exchange
@@ -164,15 +147,15 @@ INSERT INTO Exchange
 VALUES ('SSE', 'CNY');
 
 INSERT INTO Stock
-VALUES ('AAPL', 1, 'NASDAQ', 3.744*POWER(10, 12));
+VALUES ('AAPL', 'Apple Inc.','United States', 'Technology', 'NASDAQ', 3.744*POWER(10, 12));
 INSERT INTO Stock
-VALUES ('MSFT', 2, 'NASDAQ', 3.818*POWER(10, 12));
+VALUES ('MSFT', 'Microsoft Corporation', 'United States', 'Technology', 'NASDAQ', 3.818*POWER(10, 12));
 INSERT INTO Stock
-VALUES ('MS', 3, 'NYSE', 2.524*POWER(10, 11));
+VALUES ('MS', 'Morgan Stanley', 'United States', 'Financial Services','NYSE', 2.524*POWER(10, 11));
 INSERT INTO Stock
-VALUES ('BMO', 4, 'NYSE', 8.948*POWER(10, 10));
+VALUES ('BMO', 'Bank of Montreal', 'Canada', 'Financial Services','NYSE', 8.948*POWER(10, 10));
 INSERT INTO Stock
-VALUES ('BA', 5, 'NYSE', 1.610*POWER(10, 11));
+VALUES ('BA', 'The Boeing Company', 'United States','Industrials','NYSE', 1.610*POWER(10, 11));
 
 INSERT INTO Updates
 VALUES (1, 'AAPL');
@@ -217,16 +200,16 @@ VALUES (9, TO_DATE('2025-05-28', 'YYYY-MM-DD'), 0.163, 'Cash');
 INSERT INTO Divident
 VALUES (10, TO_DATE('2025-02-25', 'YYYY-MM-DD'), 0.159, 'Cash');
 
-INSERT INTO PriceHistory
-VALUES (1, TO_DATE('2025-10-17', 'YYYY-MM-DD'), 248.02, 253.38, 247.27, 252.29, 48876500, 'AAPL');
-INSERT INTO PriceHistory
-VALUES (2, TO_DATE('2025-10-17', 'YYYY-MM-DD'), 509.04, 515.48, 507.31, 513.58, 19798500, 'MSFT');
-INSERT INTO PriceHistory
-VALUES (3, TO_DATE('2025-10-17', 'YYYY-MM-DD'), 160.70, 157.85, 157.85, 158.67, 7963600, 'MS');
-INSERT INTO PriceHistory
-VALUES (4, TO_DATE('2025-10-17', 'YYYY-MM-DD'), 124.89, 126.03, 124.29, 124.92, 766100, 'BMO');
-INSERT INTO PriceHistory
-VALUES (5, TO_DATE('2025-10-17', 'YYYY-MM-DD'), 210.91, 214.68, 210.75, 212.94, 6431200, 'BA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('2025-10-17', 'YYYY-MM-DD'), 248.02, 253.38, 247.27, 252.29, 48876500, 'AAPL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('2025-10-17', 'YYYY-MM-DD'), 509.04, 515.48, 507.31, 513.58, 19798500, 'MSFT');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('2025-10-17', 'YYYY-MM-DD'), 160.70, 157.85, 157.85, 158.67, 7963600, 'MS');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('2025-10-17', 'YYYY-MM-DD'), 124.89, 126.03, 124.29, 124.92, 766100, 'BMO');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('2025-10-17', 'YYYY-MM-DD'), 210.91, 214.68, 210.75, 212.94, 6431200, 'BA');
 
 INSERT INTO Users
 VALUES ('a@example.com', 'United States', 'Technology');
