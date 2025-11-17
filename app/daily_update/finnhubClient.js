@@ -1,33 +1,33 @@
-const axios = require("axios");
-const dotenv = require("dotenv");
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+import https from 'https';
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-const BASE_URL = 'https://finnhub.io/api/v1';
+export async function getStockQuote(symbol) {
+  const token = process.env.FINNHUB_API_KEY;
+  if (!token) throw new Error('Missing FINNHUB_API_KEY');
 
-/**
- * Fetch latest quote data for ticker
- */
-async function getStockQuote(ticker) {
-  try {
-    const url = `${BASE_URL}/quote?symbol=${ticker}&token=${FINNHUB_API_KEY}`;
-    console.log('Using API key:', FINNHUB_API_KEY);
-    const response = await axios.get(url);
-    return response.data;
-  } catch (error) {
-    console.error('Finnhub API error:', error.response?.data || error.message);
-  }
+  const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${token}`;
+
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          if (res.statusCode !== 200) {
+            return reject(new Error(`Finnhub HTTP ${res.statusCode}`));
+          }
+          resolve(JSON.parse(data));
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
 }
-/**
- * Fetch company news between two dates
- */
-async function getCompanyNews(ticker, from, to) {
-  const url = `${BASE_URL}/company-news?symbol=${ticker}&from=${from}&to=${to}&token=${FINNHUB_API_KEY}`;
-  const response = await axios.get(url);
-  return response.data;
-}
 
-module.exports = {
-    getStockQuote,
-    getCompanyNews
-};
+export default { getStockQuote };
