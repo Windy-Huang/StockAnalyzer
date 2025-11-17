@@ -27,6 +27,25 @@ async function getHistoricalStockPrice(ticker) {
 }
 
 // Obtain 10Q report per company from finnhub
+async function getReportByAccessNum(accessNum) {
+    try {
+        const url = `${FINNHUB_BASE_URL}/stock/filings?accessNumber=${accessNum}&token=${FINNHUB_API_KEY}`;
+        const response = await axios.get(url);
+        const report = response.data[0];
+
+        const parsedReport = await parseFinancialStatementURL(report["reportUrl"]);
+        parsedReport.set("id", report["accessNumber"]);
+        parsedReport.set("ticker", report["symbol"]);
+        parsedReport.set("timestamp", report["filedDate"]);
+        const [, year, month] = report["filedDate"].match(/(\d{4})-(\d{2})/) || [];
+        parseInt(month) <= 2 ? parsedReport.set("year", parseInt(year)-1) :  parsedReport.set("year", parseInt(year));
+        return parsedReport;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Obtain 10Q report per company from finnhub
 async function getCompany10Q(ticker) {
     try {
         const url = `${FINNHUB_BASE_URL}/stock/filings?symbol=${ticker}&form=10-Q&token=${FINNHUB_API_KEY}`;
@@ -99,5 +118,6 @@ module.exports = {
     initializeWithSP500,
     getCompanyProfile,
     getCompany10Q,
+    getReportByAccessNum,
     getHistoricalStockPrice
 };

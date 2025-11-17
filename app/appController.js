@@ -1,6 +1,6 @@
 const express = require('express');
 const appService = require('./appService');
-const {initializeWithSP500, getCompany10Q, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript");
+const {initializeWithSP500, getCompany10Q, getReportByAccessNum, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript");
 
 const router = express.Router();
 
@@ -91,6 +91,30 @@ router.post("/insert-db", async (req, res) => {
         }
     }
     if (rejected) res.status(500).json({ success: false });
+});
+
+// Error code
+// 404 means provided accessNum is invalid
+// 422 means error in parsing, requires user assistance
+// 500 means error in DB insertion
+router.post("/insert-report", async (req, res) => {
+    const { accessNum } = req.body;
+    console.log(accessNum);
+    const parsedReport = await getReportByAccessNum(accessNum);
+    if (parsedReport) {
+        if (parsedReport.size < 9) {
+            res.status(422).json({ success: false, report: Object.fromEntries(parsedReport) });
+        } else {
+            const result = await appService.insertReportPerCompany(parsedReport);
+            if (result) {
+                res.json({ success: true });
+            } else {
+                res.status(500).json({ success: false });
+            }
+        }
+    } else {
+        res.status(404).json({ success: false });
+    }
 });
 
 router.get('/log', async (req, res) => {
