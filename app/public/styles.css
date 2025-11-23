@@ -70,6 +70,23 @@ body {
     font-size: 16px;
 }
 
+#filterResult {
+    margin-top: 0;
+    margin-left: 100px;
+    margin-right: 10px;
+    margin-bottom: 8px;
+
+    width: 68%;
+    max-height: 150px;
+    overflow-y: auto;
+    position: relative;
+    z-index: 50;
+
+    font-family: 'Inter', sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+}
+
 .imgcenter {
   display: block;
   margin-left: auto;
@@ -144,7 +161,7 @@ button:active {
 
 /* INPUT STYLES */
 input, textarea {
-    width: 80%;
+    width: 65%;
     padding: 10px 15px;
     font-size: 16px;
     border: 1px solid #404040;

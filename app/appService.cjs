@@ -329,6 +329,16 @@ async function fetchStock() {
     });
 }
 
+async function filterStock(where) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`SELECT * FROM Stock WHERE ${where}`);
+        console.log(result.rows);
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
 // For division
 // Popular is defined as select all stock that is hold by all users
 async function fetchPopularStock() {
@@ -389,6 +399,7 @@ module.exports = {
     insertReportPerCompany,
     insertPricePerStock,
     fetchStock,
+    filterStock,
     fetchPopularStock,
     fetchLeastPopularStock
 };

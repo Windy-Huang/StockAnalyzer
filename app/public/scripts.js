@@ -1,18 +1,3 @@
-/*
- * These functions below are for various webpage functionalities. 
- * Each function serves to process data on the frontend:
- *      - Before sending requests to the backend.
- *      - After receiving responses from the backend.
- * 
- * To tailor them to your specific needs,
- * adjust or expand these functions to match both your 
- *   backend endpoints 
- * and 
- *   HTML structure.
- * 
- */
-
-
 // This function checks the database connection and updates its status on the frontend.
 async function checkDbConnection() {
     const statusElem = document.getElementById('dbStatus');
@@ -204,6 +189,8 @@ let industry = "Technology";
 
 async function populateMenu() {
     const stockMenu = document.getElementById('stockMenu');
+    if (!stockMenu) return;
+
     const response = await fetch(`/menu?industry=${industry}`, { method: 'GET' });
     const responseData = await response.json();
 
@@ -230,18 +217,88 @@ async function populateMenu() {
     }
 }
 
+let filterList = "";
+
+async function applyFilterList(attribute, text) {
+    const where = filterList + attribute + " LIKE '%" + text + "%'";
+    const response = await fetch('/query', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            where: where
+        })
+    });
+    const responseData = await response.json();
+
+    if (response.ok) {
+        const result = document.getElementById('filterResult');
+        result.innerHTML = "";
+
+        responseData.data.forEach((symbol) => {
+            const elem = document.createElement("button");
+            elem.textContent = symbol;
+            elem.style = "width: 750px; text-align: left;";
+            elem.addEventListener("click", () => {
+                // stub
+                console.log("Clicked stock:", symbol);
+            });
+            result.appendChild(elem);
+        });
+    }
+}
+
+function addToFilterList(attribute, text, comparitor) {
+    filterList = filterList + attribute + " LIKE '%" + text + "%' " + comparitor + " ";
+}
+
+function clearFilterList() {
+    filterList = "";
+}
+
+function addSearchBarListener() {
+    const attribute = document.getElementById("stockAttribute");
+    const val = document.getElementById("val");
+    const comparitor = document.getElementById("comparitor");
+    const clearBtn = document.getElementById("clearFilter");
+    if (!attribute || !val || !comparitor || !clearBtn) return;
+
+    val.addEventListener("input", async () => {
+        const text = val.value.trim();
+        if (text.length === 0) {
+            comparitor.disabled = true;
+        } else {
+            comparitor.disabled = false;
+            await applyFilterList(attribute.value, text);
+        }
+    });
+
+    comparitor.addEventListener("change", () => {
+        if (comparitor.value !== "") {
+            addToFilterList(attribute.value, val.value.trim(), comparitor.value);
+            val.value = "";
+            comparitor.disabled = true;
+            comparitor.value = "";
+        }
+    });
+
+    clearBtn.addEventListener("click", () => {
+        clearFilterList();
+        val.value = "";
+        comparitor.disabled = true;
+        comparitor.value = "";
+        document.getElementById("filterResult").innerHTML = "";
+    });
+}
+
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    // checkDbConnection();
-    // fetchTableData();
-    // document.getElementById("resetDemotable").addEventListener("click", resetDemotable);
-    // document.getElementById("insertDemotable").addEventListener("submit", insertTest);
-    // document.getElementById("updataNameDemotable").addEventListener("submit", updateNameDemotable);
-    // document.getElementById("countDemotable").addEventListener("click", test);
     //document.getElementById("initDB").addEventListener("click", initDB);
     populateMenu();
+    addSearchBarListener();
 };
 
 // General function to refresh the displayed table data. 

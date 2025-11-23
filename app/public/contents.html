@@ -11,12 +11,30 @@
     <title>Database Application content</title>
 </head>
 <body class="moecontents">
+    <div id="searchBar">
+        <select id="stockAttribute">
+            <option value="ticker">Ticker</option>
+            <option value="name">Name</option>
+            <option value="country">Country</option>
+            <option value="industry">Industry</option>
+            <option value="exchange">Exchange</option>
+        </select>
 
-    <button id="initDB"> initiate </button> <br>
-    <form id="searchBar">
-        <input type="text" id="enterSearch" placeholder="Search...">
-        <img src="../sample avatar.jpg" width=7% height=7% align="right"><br>
-    </form>
+        <input type="text" id="val" placeholder="Enter filter..."/>
+
+        <select id="comparitor" disabled>
+            <option value="" disabled selected> </option>
+            <option value="AND">AND</option>
+            <option value="OR">OR</option>
+        </select>
+
+        <button id="clearFilter" style="width: 80px; margin-left: 10px;">Clear</button>
+    </div>
+
+    <div style="position: absolute;">
+        <div id="filterResult"></div>
+    </div>
+
     <img src="../sample image.jpg" class=imgcenter>
     <!-- buy, sell, hold  OR  rate 0~7 -->
     Recommendation: <div id="recommendation"></div> <br>
