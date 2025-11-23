@@ -10,7 +10,5 @@
   },
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.3",
-    "oracledb": "^5.2.0"
   }
 }
