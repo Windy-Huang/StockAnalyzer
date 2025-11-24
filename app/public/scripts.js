@@ -183,28 +183,29 @@ async function insertTest(event) {
     }
 }
 
-// stub
-let display = true;
-let industry = "Technology";
-
-async function populateMenu() {
+async function populateMenu(option) {
     const stockMenu = document.getElementById('stockMenu');
     if (!stockMenu) return;
 
-    const response = await fetch(`/menu?industry=${industry}`, { method: 'GET' });
+    stockMenu.innerHTML = "";
+    console.log(option.preferredIndustry);
+    console.log(option.display);
+    const response = await fetch(`/menu?industry=${option.preferredIndustry}`, { method: 'GET' });
     const responseData = await response.json();
 
     if (response.ok) {
         const popular = responseData.popular.flat();
         const leastPopular = responseData.leastPopular.flat();
+        console.log(popular);
+        console.log(leastPopular);
 
         responseData.data.forEach((symbol) => {
             const btn = document.createElement("button");
             btn.className = "stockButton";
             btn.textContent = symbol;
 
-            if (display && popular.includes(symbol[0])) btn.classList.add("popular");
-            if (display && leastPopular.includes(symbol[0])) btn.classList.add("leastPopular");
+            if (option.display && popular.includes(symbol[0])) btn.classList.add("popular");
+            if (option.display && leastPopular.includes(symbol[0])) btn.classList.add("leastPopular");
 
             btn.addEventListener("click", () => {
                 // stub
@@ -358,6 +359,7 @@ async function loadSetting() {
         document.getElementById("settingRec").checked = result[3] === 1;
         document.getElementById("settingIndustry").dispatchEvent(new Event("change"));
         document.getElementById("settingExchange").dispatchEvent(new Event("change"));
+        await refreshMenu();
     }
 }
 
@@ -419,8 +421,22 @@ async function updateSetting() {
     if (responseData.success) {
         document.getElementById("settingMessage").innerText = "";
         document.getElementById("userSettingPopup").style.display = "none";
+        await refreshMenu();
     } else {
         document.getElementById("settingMessage").innerText = "Error inserting to database";
+    }
+}
+
+async function refreshMenu() {
+    preferredIndustry = document.getElementById("settingIndustry").value;
+    display = document.getElementById("settingRec").checked;
+    if (parent && parent.frames && parent.frames["menu"] && typeof parent.frames["menu"].populateMenu === "function") {
+        parent.frames["menu"].populateMenu({
+            preferredIndustry: preferredIndustry,
+            display: display,
+        });
+    } else {
+        console.log("Could not find menu frame or populateMenu()");
     }
 }
 
@@ -429,7 +445,7 @@ async function updateSetting() {
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
     // document.getElementById("initDB").addEventListener("click", initDB);
-    populateMenu();
+    populateMenu({preferredIndustry: "", display: false});
     addSearchBarListener();
     addSettingListener();
 };
