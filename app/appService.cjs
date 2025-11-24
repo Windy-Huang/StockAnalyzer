@@ -372,7 +372,7 @@ async function updateUser(email, industry, exchange, rec) {
     });
 }
 
-async function fetchStock() {
+async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT ticker FROM Stock ORDER BY ticker');
         console.log(result.rows);
@@ -454,7 +454,7 @@ module.exports = {
     fetchUser,
     updateUser,
     fetchSettingDropdown,
-    fetchStock,
+    fetchAllStock,
     filterStock,
     fetchPopularStock,
     fetchLeastPopularStock

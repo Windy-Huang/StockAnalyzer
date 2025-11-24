@@ -117,7 +117,7 @@ router.post("/insert-report", async (req, res) => {
 
 // Specify industry: /menu?industry=tech
 router.get('/menu', async (req, res) => {
-    const tableContent = await appService.fetchStock();
+    const tableContent = await appService.fetchAllStock();
     const popular = await appService.fetchPopularStock();
     console.log(req.query.industry);
     if (req.query.industry) {
