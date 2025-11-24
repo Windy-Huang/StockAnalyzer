@@ -66,41 +66,98 @@ async function insertTest(event) {
 }
 
 let selectedTicker = "";
+let selectedTickerFull = [];
 
 function handleStockSelection(symbol) {
-    selectedTicker = symbol;
+    selectedTicker = symbol[0];
+    selectedTickerFull = symbol;
     const container = document.getElementById("selectedStock");
     container.innerHTML = "";
 
-    let description = "";
-    if (parent && parent.frames && parent.frames["menu"]) {
-        const menuDoc = parent.frames["menu"].document;
-        const buttons = menuDoc.querySelectorAll(".stockButton");
-        const btn = Array.from(buttons).find(b => b.textContent === symbol);
-        if (btn && btn.classList.contains("popular")) {
-            description = "🔥 This stock is hold by all users of this application";
-        } else if (btn && btn.classList.contains("leastPopular")) {
-            description = "❄️ Within your preferred industry, this stock is hold by the least users of this application";
-        }
-    }
-
-    const header = document.createElement("h2");
-    header.textContent = `Ticker: ${symbol}`;
-    container.appendChild(header);
-
-    if (description) {
-        const p = document.createElement("p");
-        p.textContent = description;
-        container.appendChild(p);
-    }
+    //////////////////////////// Render stock attributes here //////////////////////////////////////
+    renderTitleRow(container);
+    renderStockDetail(container);
 
     //////////////////////////// Calls render graph here //////////////////////////////////////
 
 
     /////////////////////////// Renders recommendation here //////////////////////////////////
+}
 
+function renderTitleRow(container) {
+    let description = "";
+    if (parent && parent.frames && parent.frames["menu"]) {
+        const menuDoc = parent.frames["menu"].document;
+        const buttons = menuDoc.querySelectorAll(".stockButton");
+        const btn = Array.from(buttons).find(b => b.textContent === selectedTicker);
+        if (btn && btn.classList.contains("popular")) {
+            description = "🔥 This stock is hold by all users of this application";
+        } else if (btn && btn.classList.contains("leastPopular")) {
+            description = "❄️ Within your preferred industry, this stock is hold by the least users";
+        }
+    }
 
+    const titleRow = document.createElement("div");
+    titleRow.style.display = "flex";
+    titleRow.style.alignItems = "baseline";
+    titleRow.style.gap = "10px";
 
+    const header = document.createElement("h2");
+    header.textContent = `Ticker: ${selectedTicker}`;
+    header.style.margin = "8px";
+    titleRow.appendChild(header);
+
+    if (description) {
+        const desc = document.createElement("span"); // or document.createElement("small")
+        desc.textContent = description;
+        desc.style.fontSize = "16px";
+        titleRow.appendChild(desc);
+    }
+
+    container.appendChild(titleRow);
+}
+
+function renderStockDetail(container) {
+    const attributes = [
+        { label: "Company Name: ", value: selectedTickerFull[1] },
+        { label: "Country: ", value: selectedTickerFull[2] },
+        { label: "Industry: ", value: selectedTickerFull[3] },
+        { label: "Exchange: ", value: selectedTickerFull[4] },
+        { label: "Market Capital: $", value: selectedTickerFull[5] }
+    ];
+
+    attributes.forEach(row => {
+        const rowDiv = document.createElement("div");
+        rowDiv.style.display = "flex";
+        rowDiv.style.alignItems = "center";
+        rowDiv.style.gap = "10px";
+        rowDiv.style.margin = "1px 0";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = row.label;
+        labelSpan.style.fontWeight = "bold";
+        rowDiv.appendChild(labelSpan);
+
+        const valueSpan = document.createElement("span");
+        valueSpan.textContent = row.value;
+        rowDiv.appendChild(valueSpan);
+
+        const spacer = document.createElement("span");
+        spacer.style.flex = "1";
+        rowDiv.appendChild(spacer);
+
+        const closeBtn = document.createElement("button");
+        closeBtn.type = "button";
+        closeBtn.textContent = "X";
+        closeBtn.style.width = "20px";
+        closeBtn.style.padding = "0px";
+        closeBtn.addEventListener("click", () => {
+            rowDiv.remove();
+        });
+        rowDiv.appendChild(closeBtn);
+
+        container.appendChild(rowDiv);
+    });
 }
 
 async function populateMenu(option) {
@@ -108,21 +165,17 @@ async function populateMenu(option) {
     if (!stockMenu) return;
 
     stockMenu.innerHTML = "";
-    console.log(option.preferredIndustry);
-    console.log(option.display);
     const response = await fetch(`/menu?industry=${option.preferredIndustry}`, { method: 'GET' });
     const responseData = await response.json();
 
     if (response.ok) {
         const popular = responseData.popular.flat();
         const leastPopular = responseData.leastPopular.flat();
-        console.log(popular);
-        console.log(leastPopular);
 
         responseData.data.forEach((symbol) => {
             const btn = document.createElement("button");
             btn.className = "stockButton";
-            btn.textContent = symbol;
+            btn.textContent = symbol[0];
 
             if (option.display) {
                 if (popular.includes(symbol[0])) {
@@ -136,7 +189,7 @@ async function populateMenu(option) {
                 console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
-                    parent.frames["contents"].handleStockSelection(symbol[0]);
+                    parent.frames["contents"].handleStockSelection(symbol);
                 }
                 parent.frames["contents"].document.dispatchEvent(new Event("click"));
             });
@@ -171,12 +224,12 @@ async function applyFilterList(attribute, text) {
             elem.textContent = symbol;
             elem.style = "width: 750px; text-align: left;";
             elem.addEventListener("click", () => {
-                console.log("Clicked stock:", symbol[0]);
+                console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
-                    parent.frames["contents"].handleStockSelection(symbol[0]);
+                    parent.frames["contents"].handleStockSelection(symbol);
                 }
-                document.getElementById("filterResult").innerHTML = "";
+                document.getElementById("clearFilter").dispatchEvent(new Event('click'));
             });
             result.appendChild(elem);
         });
@@ -407,7 +460,7 @@ function addHoldListener() {
             })
         });
         await refreshMenu();
-        handleStockSelection(selectedTicker);
+        handleStockSelection(selectedTickerFull);
     });
 }
 

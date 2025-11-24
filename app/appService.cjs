@@ -374,7 +374,7 @@ async function updateUser(email, industry, exchange, rec) {
 
 async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
-        const result = await connection.execute('SELECT ticker FROM Stock ORDER BY ticker');
+        const result = await connection.execute('SELECT * FROM Stock ORDER BY ticker');
         console.log(result.rows);
         return result.rows;
     }).catch(() => {
