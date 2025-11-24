@@ -21,6 +21,8 @@ async function checkDbConnection() {
     });
 }
 
+
+//////////////////////////// DB initialization from various API //////////////////////////////////////
 async function initDB() {
     console.log("start");
     let response = await fetch("/initiate-db", {
@@ -34,37 +36,8 @@ async function initDB() {
     console.log("finished insert");
 }
 
-async function insertTest(event) {
-    event.preventDefault();
 
-    const accessNum = document.getElementById('insertName').value;
-    const response = await fetch('/insert-report', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            accessNum: accessNum
-        })
-    });
-
-    const responseData = await response.json();
-    const messageElement = document.getElementById('insertResultMsg');
-
-    if (!response.ok) {
-        if (response.status === 404) {
-            messageElement.textContent = "invalid accessNUM";
-        } else if (response.status === 422) {
-            messageElement.textContent = "cannot parse, help me";
-            console.log(responseData.report);
-        } else {
-            messageElement.textContent = "Error inserting data!";
-        }
-    } else {
-        messageElement.textContent = "Data inserted successfully!";
-    }
-}
-
+//////////////////////////// Handler when stock is selected //////////////////////////////////////
 let selectedTicker = "";
 let selectedTickerFull = [];
 
@@ -160,6 +133,8 @@ function renderStockDetail(container) {
     });
 }
 
+
+//////////////////////////// Side bar menu generation //////////////////////////////////////
 async function populateMenu(option) {
     const stockMenu = document.getElementById('stockMenu');
     if (!stockMenu) return;
@@ -200,6 +175,21 @@ async function populateMenu(option) {
     }
 }
 
+async function refreshMenu() {
+    preferredIndustry = document.getElementById("settingIndustry").value;
+    display = document.getElementById("settingRec").checked;
+    if (parent && parent.frames && parent.frames["menu"] && typeof parent.frames["menu"].populateMenu === "function") {
+        parent.frames["menu"].populateMenu({
+            preferredIndustry: preferredIndustry,
+            display: display,
+        });
+    } else {
+        console.log("Could not find menu frame or populateMenu()");
+    }
+}
+
+
+//////////////////////////// Search bar generation //////////////////////////////////////
 let filterList = "";
 
 async function applyFilterList(attribute, text) {
@@ -279,6 +269,8 @@ function addSearchBarListener() {
     });
 }
 
+
+//////////////////////////// User setting popup generation //////////////////////////////////////
 function addSettingListener() {
     const login = document.getElementById("userSetting");
     const cancel = document.getElementById("settingCancel");
@@ -413,19 +405,8 @@ async function updateSetting() {
     }
 }
 
-async function refreshMenu() {
-    preferredIndustry = document.getElementById("settingIndustry").value;
-    display = document.getElementById("settingRec").checked;
-    if (parent && parent.frames && parent.frames["menu"] && typeof parent.frames["menu"].populateMenu === "function") {
-        parent.frames["menu"].populateMenu({
-            preferredIndustry: preferredIndustry,
-            display: display,
-        });
-    } else {
-        console.log("Could not find menu frame or populateMenu()");
-    }
-}
 
+//////////////////////////// Stock holding logic //////////////////////////////////////
 function addHoldListener() {
     const btn = document.getElementById("holdButton");
     if (!btn) return;
@@ -435,7 +416,7 @@ function addHoldListener() {
         if (username && selectedTicker) {
             btn.disabled = false;
             btn.style.cursor = "pointer";
-            document.querySelector(".holdWrapper").dataset.tooltip = "";
+            document.getElementById("holdButton").dataset.tooltip = "";
 
             const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
             const responseData = await response.json();
@@ -464,6 +445,154 @@ function addHoldListener() {
     });
 }
 
+
+//////////////////////////// Insert report logic //////////////////////////////////////
+function addInsertReportListener() {
+    const btn = document.getElementById("insertButton");
+    const cancel = document.getElementById("reportCancel");
+    const submit = document.getElementById("reportSubmit");
+    if (!btn || !cancel || !submit) return;
+
+    document.addEventListener('click', () => {
+        if (selectedTicker) btn.hidden = false;
+    });
+
+    btn.addEventListener("click", () => {
+        resetReportPopup();
+        document.getElementById("insertReportPopup").style.display = "flex";
+    });
+
+    cancel.addEventListener("click", () => {
+        document.getElementById("insertReportPopup").style.display = "none";
+    });
+
+    submit.addEventListener("click", async (e) => {
+        await handleInsertReport(e);
+    });
+}
+
+function resetReportPopup() {
+    const form = document.getElementById("insertReportForm");
+    const accessNumRow = document.getElementById("accessNumRow");
+    const error = document.getElementById("errorMessage");
+
+    form.reset();
+    accessNumRow.style.display = "";
+    form.querySelectorAll(".report-field-row").forEach(row => row.remove());
+    error.textContent = "";
+}
+
+let parsed;
+
+async function handleInsertReport(e) {
+    e.preventDefault();
+    const popup = document.getElementById("insertReportPopup");
+    const accessRow = document.getElementById("accessNumRow");
+    const accessInput = document.getElementById("accessNum");
+    const error = document.getElementById("errorMessage");
+
+    if (accessRow.style.display !== "none") { // prompt access num for auto-parse
+        const accessNum = accessInput.value.trim();
+        if (!accessNum) {
+            error.textContent = "Please enter an access number";
+            return;
+        }
+
+        const response = await fetch('/insert-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                accessNum: accessNum
+            })
+        });
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                error.textContent = "No report have this access number";
+            } else if (response.status === 422) {
+                error.textContent = "Not all values can be detected, please manually enter";
+                accessRow.style.display = "none";
+                parsed = responseData.report;
+                renderManualReportFields();
+            }
+        } else {
+            popup.style.display = "none";
+        }
+    } else { // Insert user parsed report
+        validateReportFields();
+
+        const response = await fetch('/insert-report-parsed', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                report: parsed
+            })
+        });
+        const responseData = await response.json();
+
+        if (responseData.success) {
+            popup.style.display = "none";
+        } else {
+            error.textContent = "Error inserting into database";
+        }
+    }
+}
+
+function renderManualReportFields() {
+    const form = document.getElementById("insertReportForm");
+    const error = document.getElementById("errorMessage");
+    const fields = ["revenue", "income", "eps", "liabilities", "equity"];
+
+    const unit = document.createElement("p");
+    unit.innerText = "(In units of million, except eps)";
+    form.insertBefore(unit, error);
+
+    for (const key of fields) {
+        const row = document.createElement("div");
+        row.className = "form-row report-field-row";
+
+        const label = document.createElement("label");
+        label.htmlFor = `report-${key}`;
+        label.textContent = key;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `report-${key}`;
+        input.name = key;
+        input.value = parsed[key] ? parsed[key] : "";
+
+        row.appendChild(label);
+        row.appendChild(input);
+        form.insertBefore(row, error);
+    }
+}
+
+function validateReportFields() {
+    const form = document.getElementById("insertReportForm");
+    const error = document.getElementById("errorMessage");
+    const rows = form.querySelectorAll(".report-field-row");
+
+    rows.forEach(row => {
+        const input = row.querySelector("input[type='text']");
+        console.log(input.name);
+        const val = input.value.trim();
+        if (!val) {
+            error.textContent = "Please fill in all fields";
+            return;
+        } else if (Number.isNaN(Number(val))) {
+            error.textContent = "Only numerical character allowed in all fields";
+            return;
+        } else {
+            parsed[input.name] = val;
+        }
+    });
+}
+
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
@@ -473,10 +602,5 @@ window.onload = function() {
     addSearchBarListener();
     addSettingListener();
     addHoldListener();
+    addInsertReportListener();
 };
-
-// General function to refresh the displayed table data. 
-// You can invoke this after any table-modifying operation to keep consistency.
-function fetchTableData() {
-    fetchAndDisplayUsers();
-}

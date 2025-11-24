@@ -115,6 +115,12 @@ router.post("/insert-report", async (req, res) => {
     }
 });
 
+router.post("/insert-report-parsed", async (req, res) => {
+    const { report } = req.body;
+    const result = await appService.insertReportPerCompany(parsedReport);
+    res.json({ success: result });
+});
+
 // Specify industry: /menu?industry=tech
 router.get('/menu', async (req, res) => {
     const tableContent = await appService.fetchAllStock();

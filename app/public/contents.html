@@ -87,9 +87,31 @@
     <!-- buy, sell, hold  OR  rate 0~7 -->
     Recommendation: <div id="recommendation"></div> <br>
 
-    <div class="holdWrapper" data-tooltip="Please login">
-        <button id="holdButton" disabled hidden>Hold</button>
+    <div id="insertReportPopup" class="popup" style="display: none; position: fixed; bottom: 70px; left: 10px; transform: translate(0%, 0%)">
+        <form id="insertReportForm">
+            <div class="form-row">
+                <h2 style="margin-bottom: 0px">Insert Report</h2>
+            </div>
+
+            <div class="form-row" id="accessNumRow">
+                <label for="accessNum">Report access number</label>
+                <input type="text" id="accessNum" style="padding: 0px; margin: 0px;"/>
+            </div>
+
+            <div id="errorMessage"></div>
+
+            <div>
+                <button type="button" id="reportCancel">Cancel</button>
+                <button type="submit" id="reportSubmit">Submit</button>
+            </div>
+        </form>
     </div>
+
+    <div class="btnWrapper">
+        <button id="insertButton" style="width: 140px" hidden>Insert Report</button>
+        <button id="holdButton" disabled hidden data-tooltip="Please login">Hold</button>
+    </div>
+
 
     <!-- ===================================================================================== -->
     <!-- External JavaScript file that contains the functionality/logic for the operations above. -->

@@ -42,12 +42,6 @@ body {
     padding: 0 10px 10px 10px;
 }
 
-#stockMenu {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0 10px 10px 10px;
-}
-
 .stockButton {
     position: relative;
 }
@@ -87,7 +81,7 @@ body {
     color: #ffffff;
 }
 
-#userSettingPopup {
+.popup {
     position: relative;
     transform: translate(90%, 4%);
     z-index: 100;
@@ -100,23 +94,23 @@ body {
     padding: 20px 24px;
 }
 
-#userSettingPopup .form-row {
+.popup .form-row {
     display: flex;
     margin-bottom: 12px;
 }
 
-#userSettingPopup .form-row label {
+.popup .form-row label {
     flex: 0 0 160px;
     margin-right: 8px;
 }
 
-#userSettingPopup .form-row input[type="text"],
-#userSettingPopup .form-row select {
+.popup .form-row input[type="text"],
+.popup .form-row select {
     flex: 1 1 auto;
     width: 100%;
 }
 
-#userSettingPopup .form-row span {
+.popup .form-row span {
     margin-left: 8px;
     min-width: 120px;
 }
@@ -133,15 +127,17 @@ body {
 #holdButton {
     width: 80px;
     cursor: not-allowed;
+    margin-left: auto;
+    position: relative;
 }
 
-.holdWrapper {
+.btnWrapper {
     position: relative;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
 }
 
-.holdWrapper::after {
+#holdButton::after {
     content: attr(data-tooltip);
     position: absolute;
     right: 0;
@@ -158,7 +154,7 @@ body {
     transition: opacity 0.15s ease;
 }
 
-.holdWrapper:hover::after {
+#holdButton:hover::after {
     opacity: 1;
 }
 
