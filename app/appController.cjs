@@ -152,4 +152,20 @@ router.put('/user', async (req, res) => {
     }
 });
 
+router.get('/holding', async (req, res) => {
+    const result = await appService.verifyHolding(req.query.email, req.query.ticker);
+    res.json({ exist: result });
+});
+
+router.put('/holding', async (req, res) => {
+    const { email, ticker, add } = req.body;
+    let result = false;
+    if (add) {
+        result = await appService.addHolding(email, ticker);
+    } else {
+        result = await appService.delHolding(email, ticker);
+    }
+    res.json({ success: result });
+});
+
 module.exports = router;

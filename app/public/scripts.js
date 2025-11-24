@@ -65,7 +65,10 @@ async function insertTest(event) {
     }
 }
 
+let selectedTicker = "";
+
 function handleStockSelection(symbol) {
+    selectedTicker = symbol;
     const container = document.getElementById("selectedStock");
     container.innerHTML = "";
 
@@ -87,7 +90,7 @@ function handleStockSelection(symbol) {
 
     if (description) {
         const p = document.createElement("p");
-        p.textContent = popularityDescription;
+        p.textContent = description;
         container.appendChild(p);
     }
 
@@ -121,15 +124,21 @@ async function populateMenu(option) {
             btn.className = "stockButton";
             btn.textContent = symbol;
 
-            if (option.display && popular.includes(symbol[0])) btn.classList.add("popular");
-            if (option.display && leastPopular.includes(symbol[0])) btn.classList.add("leastPopular");
+            if (option.display) {
+                if (popular.includes(symbol[0])) {
+                    btn.classList.add("popular");
+                } else if (leastPopular.includes(symbol[0])) {
+                    btn.classList.add("leastPopular");
+                }
+            }
 
             btn.addEventListener("click", () => {
                 console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
-                    parent.frames["contents"].handleStockSelection(symbol);
+                    parent.frames["contents"].handleStockSelection(symbol[0]);
                 }
+                parent.frames["contents"].document.dispatchEvent(new Event("click"));
             });
 
             stockMenu.appendChild(btn);
@@ -364,6 +373,44 @@ async function refreshMenu() {
     }
 }
 
+function addHoldListener() {
+    const btn = document.getElementById("holdButton");
+    if (!btn) return;
+
+    document.addEventListener('click', async () => {
+        if (selectedTicker) btn.hidden = false;
+        if (username && selectedTicker) {
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
+            document.querySelector(".holdWrapper").dataset.tooltip = "";
+
+            const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
+            const responseData = await response.json();
+            if (responseData.exist) {
+                btn.textContent = "Unhold";
+            } else {
+                btn.textContent = "Hold";
+            }
+       }
+    });
+
+    btn.addEventListener('click', async() => {
+        const response = await fetch('/holding', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: username,
+                ticker: selectedTicker,
+                add: btn.textContent === "Hold"
+            })
+        });
+        await refreshMenu();
+        handleStockSelection(selectedTicker);
+    });
+}
+
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
@@ -372,6 +419,7 @@ window.onload = function() {
     populateMenu({preferredIndustry: "", display: false});
     addSearchBarListener();
     addSettingListener();
+    addHoldListener();
 };
 
 // General function to refresh the displayed table data. 

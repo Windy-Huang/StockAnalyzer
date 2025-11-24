@@ -436,6 +436,48 @@ async function fetchLeastPopularStock(industry) {
     });
 }
 
+async function verifyHolding(email, ticker) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `SELECT * FROM Holds WHERE email = :email AND ticker = :ticker`,
+            {email, ticker}
+        );
+        const exists = result.rows && result.rows.length > 0;
+        console.log('verifyHolding exists:', exists, 'rows:', result.rows);
+        return exists;
+    }).catch(() => {
+        return false;
+    });
+}
+
+async function addHolding(email, ticker) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            INSERT INTO Holds
+            VALUES (:1, :2)`,
+            [email, ticker],
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
+async function delHolding(email, ticker) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            DELETE FROM Holds
+            WHERE email = :1 AND ticker = :2`,
+            [email, ticker],
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
@@ -457,5 +499,8 @@ module.exports = {
     fetchAllStock,
     filterStock,
     fetchPopularStock,
-    fetchLeastPopularStock
+    fetchLeastPopularStock,
+    verifyHolding,
+    addHolding,
+    delHolding
 };
