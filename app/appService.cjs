@@ -219,9 +219,10 @@ async function initiateDB() {
         await connection.execute(`
             CREATE TABLE Users(
                 email VARCHAR(255) PRIMARY KEY,
-                preferredCountry VARCHAR(255),
                 preferredIndustry VARCHAR(255),
-                displayPopularity NUMBER(1,0)
+                preferredExchange VARCHAR(255),
+                showRecommendation NUMBER(1,0),
+                FOREIGN KEY (preferredExchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
             )`);
         await connection.execute(`
             CREATE TABLE Holds(
@@ -319,6 +320,58 @@ async function insertPricePerStock(obj) {
     });
 }
 
+async function fetchSettingDropdown(type) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`SELECT ${type}, COUNT(*) FROM Stock GROUP BY ${type}`);
+        console.log(result.rows);
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
+async function fetchUser(email) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            SELECT * FROM Users WHERE email = :1`,
+            [email]
+        );
+        if (result.rows.length === 0) {
+            await connection.execute(`
+                INSERT INTO Users
+                VALUES (:1, :2, :3, :4)`,
+                [email, null, null, 0],
+                { autoCommit: true }
+            );
+            return [];
+        } else {
+            return result.rows;
+        }
+    }).catch(() => {
+        return [];
+    });
+}
+
+async function updateUser(email, industry, exchange, rec) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `UPDATE Users 
+             SET preferredIndustry = :industry, preferredExchange = :exchange, showRecommendation = :rec
+             WHERE email = :email`,
+            {
+                email,
+                industry: industry || null,
+                exchange: exchange || null,
+                rec
+            },
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
 async function fetchStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT ticker FROM Stock ORDER BY ticker');
@@ -398,6 +451,9 @@ module.exports = {
     insertDBperCompany,
     insertReportPerCompany,
     insertPricePerStock,
+    fetchUser,
+    updateUser,
+    fetchSettingDropdown,
     fetchStock,
     filterStock,
     fetchPopularStock,

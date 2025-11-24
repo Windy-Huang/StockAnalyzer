@@ -80,11 +80,9 @@ router.post("/initiate-db", async (req, res) => {
 });
 
 router.post("/insert-db", async (req, res) => {
-    let rejected = await initializeWithSP500(appService.insertDBperCompany, getCompanyProfile, 30);
+    let rejected = await initializeWithSP500(appService.insertDBperCompany, getCompanyProfile, 2);
     if (!rejected) {
-        console.log(`Waiting 65s before inserting report...`);
-        await new Promise(resolve => setTimeout(resolve, 65000));
-        rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 10);
+        rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 2);
         if (!rejected) {
             rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 2);
             if (!rejected) res.json({ success: true });
@@ -133,6 +131,25 @@ router.post("/query", async (req, res) => {
     const { where } = req.body;
     console.log(where);
     res.json({data: await appService.filterStock(where)});
+});
+
+router.get('/setting-dropdown', async (req, res) => {
+    res.json({industry: await appService.fetchSettingDropdown("industry"), exchange: await appService.fetchSettingDropdown("exchange")});
+});
+
+router.post('/user', async (req, res) => {
+    const { email } = req.body;
+    res.json({data: await appService.fetchUser(email)});
+});
+
+router.put('/user', async (req, res) => {
+    const { email, industry, exchange, rec } = req.body;
+    const result = await appService.updateUser(email, industry, exchange, rec);
+    if (result) {
+        res.json({ success: true });
+    } else {
+        res.status(500).json({ success: false });
+    }
 });
 
 module.exports = router;

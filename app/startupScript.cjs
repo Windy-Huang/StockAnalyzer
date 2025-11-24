@@ -11,7 +11,7 @@ const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const ALPHAVANTAGE_API_KEY = process.env.ALPHAVANTAGE_API_KEY;
 const ALPHAVANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
-const WAIT_TIME = 35000; // cooldown time before sending the next batch
+const WAIT_TIME = 10000; // cooldown time before sending the next batch
 
 // Obtain historical stock price from alphavantage
 async function getHistoricalStockPrice(ticker) {

@@ -7,7 +7,7 @@
 
     <!-- Link to the external CSS stylesheet. Uncomment if you wish to customize or add styling. -->
     <link rel="stylesheet" href="styles.css">  
-
+<!--    <button id="initDB">initialize</button>-->
     <title>Database Application content</title>
 </head>
 <body class="moecontents">
@@ -29,10 +29,55 @@
         </select>
 
         <button id="clearFilter" style="width: 80px; margin-left: 10px;">Clear</button>
+
+        <button id="userSetting" style="width: 80px; margin-left: 10px;">Login</button>
     </div>
 
     <div style="position: absolute;">
         <div id="filterResult"></div>
+    </div>
+
+    <div style="position: absolute;">
+        <div id="userSettingPopup" class="popup" style="display: none;">
+            <form id="settingsForm">
+                <div class="form-row">
+                    <h2>User Settings</h2>
+                </div>
+
+                <div class="form-row">
+                    <label for="settingEmail">Email</label>
+                    <input type="text" id="settingEmail" style="padding: 0px; margin: 0px;"/>
+                </div>
+
+                <div class="form-row" style="display: none;">
+                    <label for="settingIndustry">Preferred Industry</label>
+                    <select id="settingIndustry">
+                        <option value="" selected> </option>
+                    </select>
+                    <span id="industryTickers"></span>
+                </div>
+
+                <div class="form-row" style="display: none;">
+                    <label for="settingExchange">Preferred Exchange</label>
+                    <select id="settingExchange">
+                        <option value="" selected> </option>
+                    </select>
+                    <span id="exchangeTickers"></span>
+                </div>
+
+                <div class="form-row" style="display: none;">
+                    <label for="settingRec"> Show recommendations</label>
+                    <input type="checkbox" id="settingRec"/>
+                </div>
+
+                <div id="settingMessage"></div>
+
+                <div>
+                    <button type="button" id="settingCancel">Cancel</button>
+                    <button type="submit" id="settingSubmit">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <img src="../sample image.jpg" class=imgcenter>

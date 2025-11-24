@@ -87,6 +87,40 @@ body {
     color: #ffffff;
 }
 
+#userSettingPopup {
+    position: relative;
+    transform: translate(90%, 4%);
+    z-index: 100;
+
+    font-family: 'Inter', sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    padding: 20px 24px;
+}
+
+#userSettingPopup .form-row {
+    display: flex;
+    margin-bottom: 12px;
+}
+
+#userSettingPopup .form-row label {
+    flex: 0 0 160px;
+    margin-right: 8px;
+}
+
+#userSettingPopup .form-row input[type="text"],
+#userSettingPopup .form-row select {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+#userSettingPopup .form-row span {
+    margin-left: 8px;
+    min-width: 120px;
+}
+
 .imgcenter {
   display: block;
   margin-left: auto;

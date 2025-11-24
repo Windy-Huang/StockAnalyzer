@@ -292,13 +292,146 @@ function addSearchBarListener() {
     });
 }
 
+function addSettingListener() {
+    const login = document.getElementById("userSetting");
+    const cancel = document.getElementById("settingCancel");
+    const submit = document.getElementById("settingSubmit");
+    if (!login || !cancel || !submit) return;
+
+    login.addEventListener("click", () => {
+        document.getElementById("userSettingPopup").style.display = "flex";
+    });
+
+    cancel.addEventListener("click", () => {
+        document.getElementById("userSettingPopup").style.display = "none";
+    });
+
+    submit.addEventListener("click", async (e) => {
+        await handleSettingUpdate(e);
+    });
+}
+
+let username = "";
+
+async function handleSettingUpdate(e) {
+    e.preventDefault();
+
+    if (username === "") { // Not logged in, insert new / load existing user
+        const email = document.getElementById("settingEmail").value.trim();
+        if (email.length < 7 || !email.includes('@')) {
+            document.getElementById("settingMessage").innerText = "Invalid email";
+            return;
+        }
+
+        document.getElementById("settingMessage").innerText = "";
+        username = email;
+        document.getElementById("userSetting").innerText = email[0].toUpperCase();
+        await loadSetting();
+    } else { // Logged in, update setting
+        await updateSetting();
+    }
+}
+
+async function loadSetting() {
+    document.getElementById("settingEmail").parentElement.style.display = "none";
+    document.getElementById("settingIndustry").parentElement.style.display = "flex";
+    document.getElementById("settingExchange").parentElement.style.display = "flex";
+    document.getElementById("settingRec").parentElement.style.display = "flex";
+    await loadSettingDropdown();
+
+    const response = await fetch('/user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: username
+        })
+    });
+    const responseData = await response.json();
+
+    console.log(responseData.data);
+    if (response.ok && responseData.data.length === 1) {
+        result = responseData.data[0];
+        document.getElementById("settingIndustry").value = result[1];
+        document.getElementById("settingExchange").value = result[2];
+        document.getElementById("settingRec").checked = result[3] === 1;
+        document.getElementById("settingIndustry").dispatchEvent(new Event("change"));
+        document.getElementById("settingExchange").dispatchEvent(new Event("change"));
+    }
+}
+
+async function loadSettingDropdown() {
+    const response = await fetch(`/setting-dropdown`, { method: 'GET' });
+    const responseData = await response.json();
+
+    if (response.ok) {
+        const selectInd = document.getElementById("settingIndustry");
+        const indLabel = document.getElementById("industryTickers");
+        const selectEx = document.getElementById("settingExchange");
+        const exLabel = document.getElementById("exchangeTickers");
+
+        responseData.industry.forEach(([industry, count]) => {
+            const opt = document.createElement("option");
+            opt.value = industry;
+            opt.textContent = industry;
+            opt.dataset.count = count;
+            selectInd.appendChild(opt);
+        });
+        selectInd.addEventListener("change", () => {
+            indLabel.textContent = "";
+            if (selectInd.value) {
+                indLabel.textContent = `${selectInd.options[selectInd.selectedIndex].dataset.count} tickers`;
+            }
+        });
+
+        responseData.exchange.forEach(([exchange, count]) => {
+            const opt = document.createElement("option");
+            opt.value = exchange;
+            opt.textContent = exchange;
+            opt.dataset.count = count;
+            selectEx.appendChild(opt);
+        });
+        selectEx.addEventListener("change", () => {
+            exLabel.textContent = "";
+            if (selectEx.value) {
+                exLabel.textContent = `${selectEx.options[selectEx.selectedIndex].dataset.count} tickers`;
+            }
+        });
+    }
+}
+
+async function updateSetting() {
+    const response = await fetch('/user', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: username,
+            industry: document.getElementById("settingIndustry").value,
+            exchange: document.getElementById("settingExchange").value,
+            rec: document.getElementById("settingRec").checked ? 1 : 0,
+        })
+    });
+
+    const responseData = await response.json();
+    if (responseData.success) {
+        document.getElementById("settingMessage").innerText = "";
+        document.getElementById("userSettingPopup").style.display = "none";
+    } else {
+        document.getElementById("settingMessage").innerText = "Error inserting to database";
+    }
+}
+
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    //document.getElementById("initDB").addEventListener("click", initDB);
+    // document.getElementById("initDB").addEventListener("click", initDB);
     populateMenu();
     addSearchBarListener();
+    addSettingListener();
 };
 
 // General function to refresh the displayed table data. 
