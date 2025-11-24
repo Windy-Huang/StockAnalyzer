@@ -199,19 +199,262 @@ async function insertTest(event) {
 }
 
 // ---------------------------------------------------------------
+// Stock Graph State Management
+let selectedStock = null;
+let priceChart = null;
+let currentUserEmail = null; // This will be set by the login component
+const CHART_COLORS = [
+    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+];
+
+// ---------------------------------------------------------------
+// Stock Graph Functions
+
+// Load all available stocks into the menu
+async function loadStockList() {
+    const stockListDiv = document.getElementById('stockList');
+    if (!stockListDiv) return;
+
+    try {
+        const response = await fetch('/stocks');
+        const data = await response.json();
+
+        if (data.success && data.data.length > 0) {
+            stockListDiv.innerHTML = '';
+            data.data.forEach(stock => {
+                const button = document.createElement('button');
+                button.id = `stock-${stock.ticker}`;
+                button.textContent = `${stock.ticker}`;
+                button.onclick = () => parent.selectStock(stock.ticker);
+                stockListDiv.appendChild(button);
+                stockListDiv.appendChild(document.createElement('br'));
+            });
+        } else {
+            stockListDiv.innerHTML = '<p>No stocks available</p>';
+        }
+    } catch (error) {
+        console.error('Error loading stocks:', error);
+        stockListDiv.innerHTML = '<p>Error loading stocks</p>';
+    }
+}
+
+// Handle stock selection from menu
+function selectStock(ticker) {
+    const stockButton = document.getElementById(`stock-${ticker}`);
+
+    if (selectedStock === ticker) {
+        // Deselect stock - return to portfolio view
+        selectedStock = null;
+        if (stockButton) stockButton.classList.remove('selected');
+        updateChartForPortfolio();
+    } else {
+        // Select new stock
+        selectedStock = ticker;
+
+        // Update button styling
+        document.querySelectorAll('[id^="stock-"]').forEach(btn => btn.classList.remove('selected'));
+        if (stockButton) stockButton.classList.add('selected');
+
+        updateChartForStock(ticker);
+    }
+}
+
+// Update chart to show portfolio (all held stocks)
+async function updateChartForPortfolio() {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    if (!currentUserEmail) {
+        if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
+        if (priceChart) {
+            priceChart.destroy();
+            priceChart = null;
+        }
+        return;
+    }
+
+    try {
+        // Get user's held stocks
+        const response = await fetch(`/user-held-stocks/${encodeURIComponent(currentUserEmail)}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = 'You do not hold any stocks';
+            if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        // Fetch price history for all held stocks
+        const priceDataPromises = data.data.map(stock =>
+            fetch(`/price-history/${stock.ticker}`).then(res => res.json())
+        );
+        const priceDataResults = await Promise.all(priceDataPromises);
+
+        // Prepare datasets for chart
+        const datasets = [];
+        priceDataResults.forEach((result, index) => {
+            if (result.success && result.data.length > 0) {
+                const stock = data.data[index];
+                datasets.push({
+                    label: stock.ticker,
+                    data: result.data.map(point => ({
+                        x: new Date(point.date),
+                        y: point.close
+                    })),
+                    borderColor: CHART_COLORS[index % CHART_COLORS.length],
+                    backgroundColor: 'transparent',
+                    tension: 0.1
+                });
+            }
+        });
+
+        if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart(datasets);
+
+    } catch (error) {
+        console.error('Error updating portfolio chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading portfolio data';
+    }
+}
+
+// Update chart to show single stock
+async function updateChartForStock(ticker) {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    try {
+        const response = await fetch(`/price-history/${ticker}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = `No price history data for ${ticker}`;
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        const dataset = {
+            label: ticker,
+            data: data.data.map(point => ({
+                x: new Date(point.date),
+                y: point.close
+            })),
+            borderColor: CHART_COLORS[0],
+            backgroundColor: 'transparent',
+            tension: 0.1
+        };
+
+        if (chartTitle) chartTitle.textContent = `${ticker} Price History`;
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart([dataset]);
+
+    } catch (error) {
+        console.error('Error updating stock chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading stock data';
+    }
+}
+
+// Render the chart with given datasets
+function renderChart(datasets) {
+    const ctx = document.getElementById('priceChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (priceChart) {
+        priceChart.destroy();
+    }
+
+    // Create new chart
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price (USD)',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Function to be called by login component when user logs in
+function onUserLogin(email) {
+    currentUserEmail = email;
+    selectedStock = null;
+    updateChartForPortfolio();
+}
+
+// Function to be called by login component when user logs out
+function onUserLogout() {
+    currentUserEmail = null;
+    selectedStock = null;
+    if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+    }
+    const chartMessage = document.getElementById('chartMessage');
+    if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
+}
+
+// ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    // checkDbConnection();
-    // fetchTableData();
-    // document.getElementById("resetDemotable").addEventListener("click", resetDemotable);
-    // document.getElementById("insertDemotable").addEventListener("submit", insertTest);
-    // document.getElementById("updataNameDemotable").addEventListener("submit", updateNameDemotable);
-    // document.getElementById("countDemotable").addEventListener("click", test);
-    document.getElementById("initDB").addEventListener("click", initDB);
+    const initDBBtn = document.getElementById("initDB");
+    if (initDBBtn) {
+        initDBBtn.addEventListener("click", initDB);
+    }
+
+    // Load stock list in menu frame
+    loadStockList();
 };
 
-// General function to refresh the displayed table data. 
+// General function to refresh the displayed table data.
 // You can invoke this after any table-modifying operation to keep consistency.
 function fetchTableData() {
     fetchAndDisplayUsers();
