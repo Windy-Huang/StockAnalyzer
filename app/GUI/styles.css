@@ -114,3 +114,13 @@ input::placeholder, textarea::placeholder {
     height: 1em;
     vertical-align: middle;
 }
+
+/* Chart container */
+#priceChart {
+    max-height: 400px;
+    margin: 20px auto;
+}
+
+.stock-button.selected {
+    background-color: #3a3a3a;
+}
