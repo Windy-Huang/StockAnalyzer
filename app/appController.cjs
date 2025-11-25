@@ -16,55 +16,6 @@ router.get('/check-db-connection', async (req, res) => {
     }
 });
 
-router.get('/demotable', async (req, res) => {
-    const tableContent = await appService.fetchDemotableFromDb();
-    res.json({data: tableContent});
-});
-
-router.post("/initiate-demotable", async (req, res) => {
-    const initiateResult = await appService.initiateDemotable();
-    if (initiateResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.post("/insert-demotable", async (req, res) => {
-    const { id, name } = req.body;
-    const insertResult = await appService.insertDemotable(id, name);
-    if (insertResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.post("/update-name-demotable", async (req, res) => {
-    const { oldName, newName } = req.body;
-    const updateResult = await appService.updateNameDemotable(oldName, newName);
-    if (updateResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.get('/count-demotable', async (req, res) => {
-    const tableCount = await appService.countDemotable();
-    if (tableCount >= 0) {
-        res.json({ 
-            success: true,  
-            count: tableCount
-        });
-    } else {
-        res.status(500).json({ 
-            success: false, 
-            count: tableCount
-        });
-    }
-});
-
 router.post("/initiate-db", async (req, res) => {
     try {
         const initiateResult = await appService.initiateDB();
@@ -84,7 +35,7 @@ router.post("/insert-db", async (req, res) => {
     if (!rejected) {
         rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 2);
         if (!rejected) {
-            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 2);
+            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 1);
             if (!rejected) res.json({ success: true });
         }
     }
@@ -117,7 +68,7 @@ router.post("/insert-report", async (req, res) => {
 
 router.post("/insert-report-parsed", async (req, res) => {
     const { report } = req.body;
-    const result = await appService.insertReportPerCompany(parsedReport);
+    const result = await appService.insertReportPerCompany(report);
     res.json({ success: result });
 });
 

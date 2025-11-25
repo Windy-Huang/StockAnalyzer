@@ -78,72 +78,6 @@ async function testOracleConnection() {
     });
 }
 
-async function fetchDemotableFromDb() {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute('SELECT * FROM DEMOTABLE');
-        return result.rows;
-    }).catch(() => {
-        return [];
-    });
-}
-
-async function initiateDemotable() {
-    return await withOracleDB(async (connection) => {
-        try {
-            await connection.execute(`DROP TABLE DEMOTABLE`);
-        } catch(err) {
-            console.log('Table might not exist, proceeding to create...');
-        }
-
-        const result = await connection.execute(`
-            CREATE TABLE DEMOTABLE (
-                id NUMBER PRIMARY KEY,
-                name VARCHAR2(20)
-            )
-        `);
-        return true;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function insertDemotable(id, name) {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute(
-            `INSERT INTO DEMOTABLE (id, name) VALUES (:id, :name)`,
-            [id, name],
-            { autoCommit: true }
-        );
-
-        return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function updateNameDemotable(oldName, newName) {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute(
-            `UPDATE DEMOTABLE SET name=:newName where name=:oldName`,
-            [newName, oldName],
-            { autoCommit: true }
-        );
-
-        return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function countDemotable() {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute('SELECT Count(*) FROM DEMOTABLE');
-        return result.rows[0][0];
-    }).catch(() => {
-        return -1;
-    });
-}
-
 async function initiateDB() {
     return await withOracleDB(async (connection) => {
         try {
@@ -228,6 +162,7 @@ async function initiateDB() {
             CREATE TABLE Holds(
                 email VARCHAR(255),
                 ticker VARCHAR(255),
+                holdTime DATE,
                 FOREIGN KEY (email) REFERENCES Users(email) ON DELETE CASCADE,
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
@@ -273,7 +208,7 @@ async function insertDBperCompany(data) {
 
 async function insertReportPerCompany(obj) {
     return await withOracleDB(async (connection) => {
-        const data = Object.fromEntries(obj);
+        const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
         await connection.execute(`
             INSERT INTO DebtEquity
             VALUES (:1, :2, :3)`,
@@ -289,7 +224,7 @@ async function insertReportPerCompany(obj) {
         console.log("insert report finished " + data["ticker"]);
         return result.rowsAffected && result.rowsAffected > 0;
     }).catch((err) => {
-        console.error("Insert failed : ", data["ticker"], err);
+        console.error("Insert failed : ", err);
         return false;
     });
 }
@@ -454,7 +389,7 @@ async function addHolding(email, ticker) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
             INSERT INTO Holds
-            VALUES (:1, :2)`,
+            VALUES (:1, :2, SYSDATE)`,
             [email, ticker],
             { autoCommit: true }
         );
@@ -484,11 +419,6 @@ module.exports = {
     poolReady,
     withOracleDB,
     testOracleConnection,
-    fetchDemotableFromDb,
-    initiateDemotable,
-    insertDemotable,
-    updateNameDemotable,
-    countDemotable,
     initiateDB,
     insertDBperCompany,
     insertReportPerCompany,

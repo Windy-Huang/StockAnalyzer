@@ -91,6 +91,7 @@ function renderTitleRow(container) {
 }
 
 function renderStockDetail(container) {
+    //////////////////////////// Replace with attributes of price history //////////////////////////////////////
     const attributes = [
         { label: "Company Name: ", value: selectedTickerFull[1] },
         { label: "Country: ", value: selectedTickerFull[2] },
@@ -397,6 +398,9 @@ async function updateSetting() {
 
     const responseData = await response.json();
     if (responseData.success) {
+        document.getElementById("settingMessage").innerText = "Update successful!";
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         document.getElementById("settingMessage").innerText = "";
         document.getElementById("userSettingPopup").style.display = "none";
         await refreshMenu();
@@ -475,11 +479,13 @@ function resetReportPopup() {
     const form = document.getElementById("insertReportForm");
     const accessNumRow = document.getElementById("accessNumRow");
     const error = document.getElementById("errorMessage");
+    const unit = document.getElementById("unit");
 
     form.reset();
     accessNumRow.style.display = "";
     form.querySelectorAll(".report-field-row").forEach(row => row.remove());
     error.textContent = "";
+    unit.textContent = "";
 }
 
 let parsed;
@@ -517,12 +523,17 @@ async function handleInsertReport(e) {
                 accessRow.style.display = "none";
                 parsed = responseData.report;
                 renderManualReportFields();
+            } else {
+                error.textContent = "Report with this access number already exists";
             }
         } else {
+            error.innerText = "Insert successful!";
+            await new Promise(resolve => setTimeout(resolve, 1500));
             popup.style.display = "none";
         }
     } else { // Insert user parsed report
         validateReportFields();
+        if (Object.keys(parsed).length < 9) return;
 
         const response = await fetch('/insert-report-parsed', {
             method: 'POST',
@@ -536,9 +547,11 @@ async function handleInsertReport(e) {
         const responseData = await response.json();
 
         if (responseData.success) {
+            error.innerText = "Insert successful!";
+            await new Promise(resolve => setTimeout(resolve, 1500));
             popup.style.display = "none";
         } else {
-            error.textContent = "Error inserting into database";
+            error.textContent = "Report with this access number already exists";
         }
     }
 }
@@ -547,10 +560,7 @@ function renderManualReportFields() {
     const form = document.getElementById("insertReportForm");
     const error = document.getElementById("errorMessage");
     const fields = ["revenue", "income", "eps", "liabilities", "equity"];
-
-    const unit = document.createElement("p");
-    unit.innerText = "(In units of million, except eps)";
-    form.insertBefore(unit, error);
+    document.getElementById("unit").textContent = "(In units of million, except eps)";
 
     for (const key of fields) {
         const row = document.createElement("div");
@@ -579,7 +589,6 @@ function validateReportFields() {
 
     rows.forEach(row => {
         const input = row.querySelector("input[type='text']");
-        console.log(input.name);
         const val = input.value.trim();
         if (!val) {
             error.textContent = "Please fill in all fields";
