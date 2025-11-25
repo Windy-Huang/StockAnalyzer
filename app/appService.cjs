@@ -352,15 +352,15 @@ async function fetchPopularStock() {
 async function fetchLeastPopularStock(industry) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
-            SELECT h.ticker
-            FROM Holds h, Stock s
-            WHERE h.ticker = s.ticker AND s.industry = :1
-            GROUP BY h.ticker
+            SELECT s.ticker
+            FROM Stock s LEFT JOIN Holds h ON h.ticker = s.ticker
+            WHERE s.industry = :1
+            GROUP BY s.ticker
             HAVING COUNT(*) <= ALL (
                 SELECT COUNT(*)
-                FROM Holds h1, Stock s1
-                WHERE h1.ticker = s1.ticker AND s1.industry = :1
-                GROUP BY h1.ticker
+                FROM Stock s1 LEFT JOIN Holds h1 ON h1.ticker = s1.ticker
+                WHERE s1.industry = :1
+                GROUP BY s1.ticker
             )`,
             [industry]
         );
