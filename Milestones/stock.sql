@@ -64,7 +64,8 @@ CREATE TABLE Users(
 	email VARCHAR(255) PRIMARY KEY,
     preferredIndustry VARCHAR(255),
     preferredExchange VARCHAR(255),
-    showRecommendation NUMBER(1,0)
+    showRecommendation NUMBER(1,0),
+    FOREIGN KEY (preferredExchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
 );
 
 CREATE TABLE Holds(
