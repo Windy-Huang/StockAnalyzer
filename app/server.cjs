@@ -11,14 +11,13 @@ const PORT = envVariables.PORT || 65534;  // Adjust the PORT if needed (e.g., if
 
 // Middleware setup
 app.use(express.static('public'));  // Serve static files from the 'public' directory
+app.use('/GUI', express.static('GUI'));  // Serve static files from the 'GUI' directory
 app.use(express.json());             // Parse incoming JSON payloads
 
-// If you prefer some other file as default page other than 'index copy.html',
-//      you can adjust and use the bellow line of code to
-//      route to send 'DEFAULT_FILE_NAME.html' as default for root URL
-// app.get('/', (req, res) => {
-//     res.sendFile(__dirname + '/public/DEFAULT_FILE_NAME.html');
-// });
+// Redirect root to GUI
+app.get('/', (req, res) => {
+    res.redirect('/GUI/index.html');
+});
 
 
 // mount the router

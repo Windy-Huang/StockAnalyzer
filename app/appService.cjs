@@ -15,13 +15,33 @@ const dbConfig = {
     poolTimeout: 60
 };
 
+// Debug: Log connection details (password masked)
+console.log('=== Database Configuration Debug ===');
+console.log('  User:', dbConfig.user);
+console.log('  User type:', typeof dbConfig.user);
+console.log('  User length:', dbConfig.user ? dbConfig.user.length : 0);
+console.log('  User has whitespace?', dbConfig.user !== dbConfig.user.trim());
+console.log('  Password:', dbConfig.password ? '*'.repeat(dbConfig.password.length) : 'NOT SET');
+console.log('  Password type:', typeof dbConfig.password);
+console.log('  Password length:', dbConfig.password ? dbConfig.password.length : 0);
+console.log('  Password has whitespace?', dbConfig.password !== dbConfig.password.trim());
+console.log('  Connect String:', dbConfig.connectString);
+console.log('  Full config keys:', Object.keys(dbConfig));
+console.log('=====================================');
+
 // initialize connection pool
 async function initializeConnectionPool() {
     try {
+        console.log('Attempting to create Oracle connection pool...');
         await oracledb.createPool(dbConfig);
-        console.log('Connection pool started');
+        console.log('Connection pool started successfully');
     } catch (err) {
-        console.error('Initialization error: ' + err.message);
+        console.error('=== Connection Pool Initialization Failed ===');
+        console.error('Error message:', err.message);
+        console.error('Error code:', err.code);
+        console.error('Error details:', err);
+        console.error('==========================================');
+        throw err;
     }
 }
 
