@@ -15,13 +15,33 @@ const dbConfig = {
     poolTimeout: 60
 };
 
+// Debug: Log connection details (password masked)
+console.log('=== Database Configuration Debug ===');
+console.log('  User:', dbConfig.user);
+console.log('  User type:', typeof dbConfig.user);
+console.log('  User length:', dbConfig.user ? dbConfig.user.length : 0);
+console.log('  User has whitespace?', dbConfig.user !== dbConfig.user.trim());
+console.log('  Password:', dbConfig.password ? '*'.repeat(dbConfig.password.length) : 'NOT SET');
+console.log('  Password type:', typeof dbConfig.password);
+console.log('  Password length:', dbConfig.password ? dbConfig.password.length : 0);
+console.log('  Password has whitespace?', dbConfig.password !== dbConfig.password.trim());
+console.log('  Connect String:', dbConfig.connectString);
+console.log('  Full config keys:', Object.keys(dbConfig));
+console.log('=====================================');
+
 // initialize connection pool
 async function initializeConnectionPool() {
     try {
+        console.log('Attempting to create Oracle connection pool...');
         await oracledb.createPool(dbConfig);
-        console.log('Connection pool started');
+        console.log('Connection pool started successfully');
     } catch (err) {
-        console.error('Initialization error: ' + err.message);
+        console.error('=== Connection Pool Initialization Failed ===');
+        console.error('Error message:', err.message);
+        console.error('Error code:', err.code);
+        console.error('Error details:', err);
+        console.error('==========================================');
+        throw err;
     }
 }
 
@@ -478,6 +498,68 @@ async function delHolding(email, ticker) {
     });
 }
 
+// Get all stocks held by a specific user (from Holds table)
+async function getUserHeldStocks(email) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `SELECT h.ticker, s.name
+             FROM Holds h
+             JOIN Stock s ON h.ticker = s.ticker
+             WHERE h.email = :email
+             ORDER BY s.ticker`,
+            [email]
+        );
+        return result.rows.map(row => ({ ticker: row[0], name: row[1] }));
+    }).catch((err) => {
+        console.error('Error in getUserHeldStocks:', err);
+        return [];
+    });
+}
+
+// Get price history for a specific stock ticker
+async function getPriceHistory(ticker) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `SELECT timestamp, openPrice, highPrice, lowPrice, closePrice, volume
+             FROM PriceHistory
+             WHERE ticker = :ticker
+             ORDER BY timestamp ASC`,
+            [ticker]
+        );
+        return result.rows.map(row => ({
+            date: row[0],
+            open: row[1],
+            high: row[2],
+            low: row[3],
+            close: row[4],
+            volume: row[5]
+        }));
+    }).catch((err) => {
+        console.error('Error in getPriceHistory:', err);
+        return [];
+    });
+}
+
+// Get all available stocks
+async function getAllStocks() {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `SELECT ticker, name, exchange, industry
+             FROM Stock
+             ORDER BY ticker`
+        );
+        return result.rows.map(row => ({
+            ticker: row[0],
+            name: row[1],
+            exchange: row[2],
+            industry: row[3]
+        }));
+    }).catch((err) => {
+        console.error('Error in getAllStocks:', err);
+        return [];
+    });
+}
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
@@ -502,5 +584,8 @@ module.exports = {
     fetchLeastPopularStock,
     verifyHolding,
     addHolding,
-    delHolding
+    delHolding,
+    getUserHeldStocks,
+    getPriceHistory,
+    getAllStocks
 };

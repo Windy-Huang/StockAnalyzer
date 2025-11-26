@@ -5,8 +5,18 @@ function loadEnvFile(filePath) {
         const envFile = fs.readFileSync(filePath, 'utf8');
 
         const envVars = envFile.split('\n').reduce((acc, line) => {
-            const [key, value] = line.split('=');
-            acc[key] = value;
+            // Skip empty lines and comments
+            if (!line.trim() || line.trim().startsWith('#')) {
+                return acc;
+            }
+
+            const [key, ...valueParts] = line.split('=');
+            if (key && valueParts.length > 0) {
+                // Trim whitespace from both key and value
+                const trimmedKey = key.trim();
+                const trimmedValue = valueParts.join('=').trim();
+                acc[trimmedKey] = trimmedValue;
+            }
             return acc;
         }, {});
 

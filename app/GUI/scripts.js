@@ -1,0 +1,461 @@
+/*
+ * These functions below are for various webpage functionalities. 
+ * Each function serves to process data on the frontend:
+ *      - Before sending requests to the backend.
+ *      - After receiving responses from the backend.
+ * 
+ * To tailor them to your specific needs,
+ * adjust or expand these functions to match both your 
+ *   backend endpoints 
+ * and 
+ *   HTML structure.
+ * 
+ */
+
+
+// This function checks the database connection and updates its status on the frontend.
+async function checkDbConnection() {
+    const statusElem = document.getElementById('dbStatus');
+    const loadingGifElem = document.getElementById('loadingGif');
+
+    const response = await fetch('/check-db-connection', {
+        method: "GET"
+    });
+
+    // Hide the loading GIF once the response is received.
+    loadingGifElem.style.display = 'none';
+    // Display the statusElem's text in the placeholder.
+    statusElem.style.display = 'inline';
+
+    response.text()
+    .then((text) => {
+        statusElem.textContent = text;
+    })
+    .catch((error) => {
+        statusElem.textContent = 'connection timed out';  // Adjust error handling if required.
+    });
+}
+
+// Fetches data from the demotable and displays it.
+async function fetchAndDisplayUsers() {
+    const tableElement = document.getElementById('demotable');
+    const tableBody = tableElement.querySelector('tbody');
+
+    const response = await fetch('/demotable', {
+        method: 'GET'
+    });
+
+    const responseData = await response.json();
+    const demotableContent = responseData.data;
+
+    // Always clear old, already fetched data before new fetching process.
+    if (tableBody) {
+        tableBody.innerHTML = '';
+    }
+
+    demotableContent.forEach(user => {
+        const row = tableBody.insertRow();
+        user.forEach((field, index) => {
+            const cell = row.insertCell(index);
+            cell.textContent = field;
+        });
+    });
+}
+
+// This function resets or initializes the demotable.
+async function resetDemotable() {
+    const response = await fetch("/initiate-demotable", {
+        method: 'POST'
+    });
+    const responseData = await response.json();
+
+    if (responseData.success) {
+        const messageElement = document.getElementById('resetResultMsg');
+        messageElement.textContent = "demotable initiated successfully!";
+        fetchTableData();
+    } else {
+        alert("Error initiating table!");
+    }
+}
+
+// Inserts new records into the demotable.
+async function insertDemotable(event) {
+    event.preventDefault();
+
+    const idValue = document.getElementById('insertId').value;
+    const nameValue = document.getElementById('insertName').value;
+
+    const response = await fetch('/insert-demotable', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: idValue,
+            name: nameValue
+        })
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('insertResultMsg');
+
+    if (responseData.success) {
+        messageElement.textContent = "Data inserted successfully!";
+        fetchTableData();
+    } else {
+        messageElement.textContent = "Error inserting data!";
+    }
+}
+
+// Updates names in the demotable.
+async function updateNameDemotable(event) {
+    event.preventDefault();
+
+    const oldNameValue = document.getElementById('updateOldName').value;
+    const newNameValue = document.getElementById('updateNewName').value;
+
+    const response = await fetch('/update-name-demotable', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            oldName: oldNameValue,
+            newName: newNameValue
+        })
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('updateNameResultMsg');
+
+    if (responseData.success) {
+        messageElement.textContent = "Name updated successfully!";
+        fetchTableData();
+    } else {
+        messageElement.textContent = "Error updating name!";
+    }
+}
+
+// Counts rows in the demotable.
+// Modify the function accordingly if using different aggregate functions or procedures.
+async function countDemotable() {
+    const response = await fetch("/count-demotable", {
+        method: 'GET'
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('countResultMsg');
+
+    if (responseData.success) {
+        const tupleCount = responseData.count;
+        messageElement.textContent = `The number of tuples in demotable: ${tupleCount}`;
+    } else {
+        alert("Error in count demotable!");
+    }
+}
+
+async function initDB() {
+    console.log("start");
+    let response = await fetch("/initiate-db", {
+        method: 'POST'
+    });
+    await response.json();
+    console.log("finished initiate");
+    response = await fetch("/insert-db", {
+        method: 'POST'
+    });
+    console.log("finished insert");
+}
+
+async function insertTest(event) {
+    event.preventDefault();
+
+    const accessNum = document.getElementById('insertName').value;
+    const response = await fetch('/insert-report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            accessNum: accessNum
+        })
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('insertResultMsg');
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            messageElement.textContent = "invalid accessNUM";
+        } else if (response.status === 422) {
+            messageElement.textContent = "cannot parse, help me";
+            console.log(responseData.report);
+        } else {
+            messageElement.textContent = "Error inserting data!";
+        }
+    } else {
+        messageElement.textContent = "Data inserted successfully!";
+    }
+}
+
+// ---------------------------------------------------------------
+// Stock Graph State Management
+let selectedStock = null;
+let priceChart = null;
+let currentUserEmail = null; // This will be set by the login component
+const CHART_COLORS = [
+    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+];
+
+// ---------------------------------------------------------------
+// Stock Graph Functions
+
+// Load all available stocks into the menu
+async function loadStockList() {
+    const stockListDiv = document.getElementById('stockList');
+    if (!stockListDiv) return;
+
+    try {
+        const response = await fetch('/stocks');
+        const data = await response.json();
+
+        if (data.success && data.data.length > 0) {
+            stockListDiv.innerHTML = '';
+            data.data.forEach(stock => {
+                const button = document.createElement('button');
+                button.id = `stock-${stock.ticker}`;
+                button.textContent = `${stock.ticker}`;
+                button.onclick = () => parent.selectStock(stock.ticker);
+                stockListDiv.appendChild(button);
+                stockListDiv.appendChild(document.createElement('br'));
+            });
+        } else {
+            stockListDiv.innerHTML = '<p>No stocks available</p>';
+        }
+    } catch (error) {
+        console.error('Error loading stocks:', error);
+        stockListDiv.innerHTML = '<p>Error loading stocks</p>';
+    }
+}
+
+// Handle stock selection from menu
+function selectStock(ticker) {
+    const stockButton = document.getElementById(`stock-${ticker}`);
+
+    if (selectedStock === ticker) {
+        // Deselect stock - return to portfolio view
+        selectedStock = null;
+        if (stockButton) stockButton.classList.remove('selected');
+        updateChartForPortfolio();
+    } else {
+        // Select new stock
+        selectedStock = ticker;
+
+        // Update button styling
+        document.querySelectorAll('[id^="stock-"]').forEach(btn => btn.classList.remove('selected'));
+        if (stockButton) stockButton.classList.add('selected');
+
+        updateChartForStock(ticker);
+    }
+}
+
+// Update chart to show portfolio (all held stocks)
+async function updateChartForPortfolio() {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    if (!currentUserEmail) {
+        if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
+        if (priceChart) {
+            priceChart.destroy();
+            priceChart = null;
+        }
+        return;
+    }
+
+    try {
+        // Get user's held stocks
+        const response = await fetch(`/user-held-stocks/${encodeURIComponent(currentUserEmail)}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = 'You do not hold any stocks';
+            if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        // Fetch price history for all held stocks
+        const priceDataPromises = data.data.map(stock =>
+            fetch(`/price-history/${stock.ticker}`).then(res => res.json())
+        );
+        const priceDataResults = await Promise.all(priceDataPromises);
+
+        // Prepare datasets for chart
+        const datasets = [];
+        priceDataResults.forEach((result, index) => {
+            if (result.success && result.data.length > 0) {
+                const stock = data.data[index];
+                datasets.push({
+                    label: stock.ticker,
+                    data: result.data.map(point => ({
+                        x: new Date(point.date),
+                        y: point.close
+                    })),
+                    borderColor: CHART_COLORS[index % CHART_COLORS.length],
+                    backgroundColor: 'transparent',
+                    tension: 0.1
+                });
+            }
+        });
+
+        if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart(datasets);
+
+    } catch (error) {
+        console.error('Error updating portfolio chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading portfolio data';
+    }
+}
+
+// Update chart to show single stock
+async function updateChartForStock(ticker) {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    try {
+        const response = await fetch(`/price-history/${ticker}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = `No price history data for ${ticker}`;
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        const dataset = {
+            label: ticker,
+            data: data.data.map(point => ({
+                x: new Date(point.date),
+                y: point.close
+            })),
+            borderColor: CHART_COLORS[0],
+            backgroundColor: 'transparent',
+            tension: 0.1
+        };
+
+        if (chartTitle) chartTitle.textContent = `${ticker} Price History`;
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart([dataset]);
+
+    } catch (error) {
+        console.error('Error updating stock chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading stock data';
+    }
+}
+
+// Render the chart with given datasets
+function renderChart(datasets) {
+    const ctx = document.getElementById('priceChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (priceChart) {
+        priceChart.destroy();
+    }
+
+    // Create new chart
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price (USD)',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Function to be called by login component when user logs in
+function onUserLogin(email) {
+    currentUserEmail = email;
+    selectedStock = null;
+    updateChartForPortfolio();
+}
+
+// Function to be called by login component when user logs out
+function onUserLogout() {
+    currentUserEmail = null;
+    selectedStock = null;
+    if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+    }
+    const chartMessage = document.getElementById('chartMessage');
+    if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
+}
+
+// ---------------------------------------------------------------
+// Initializes the webpage functionalities.
+// Add or remove event listeners based on the desired functionalities.
+window.onload = function() {
+    const initDBBtn = document.getElementById("initDB");
+    if (initDBBtn) {
+        initDBBtn.addEventListener("click", initDB);
+    }
+
+    // Load stock list in menu frame
+    loadStockList();
+};
+
+// General function to refresh the displayed table data.
+// You can invoke this after any table-modifying operation to keep consistency.
+function fetchTableData() {
+    fetchAndDisplayUsers();
+}

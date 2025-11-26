@@ -173,4 +173,39 @@ router.put('/holding', async (req, res) => {
     res.json({ success: result });
 });
 
+// Get all stocks held by a specific user
+router.get('/user-held-stocks/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const stocks = await appService.getUserHeldStocks(email);
+        res.json({ success: true, data: stocks });
+    } catch (error) {
+        console.error('Error fetching user held stocks:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get price history for a specific stock
+router.get('/price-history/:ticker', async (req, res) => {
+    try {
+        const { ticker } = req.params;
+        const priceHistory = await appService.getPriceHistory(ticker);
+        res.json({ success: true, data: priceHistory });
+    } catch (error) {
+        console.error('Error fetching price history:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get all available stocks
+router.get('/stocks', async (req, res) => {
+    try {
+        const stocks = await appService.getAllStocks();
+        res.json({ success: true, data: stocks });
+    } catch (error) {
+        console.error('Error fetching stocks:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
