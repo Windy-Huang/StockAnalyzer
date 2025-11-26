@@ -37,6 +37,15 @@ async function initDB() {
 }
 
 
+//////////////////////////// Stock Graph State Management //////////////////////////////////////
+let selectedStock = null;
+let priceChart = null;
+let currentUserEmail = null; // This will be set by the login component
+const CHART_COLORS = [
+    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+];
+
 //////////////////////////// Handler when stock is selected //////////////////////////////////////
 let selectedTicker = "";
 let selectedTickerFull = [];
@@ -45,16 +54,39 @@ function handleStockSelection(symbol) {
     selectedTicker = symbol[0];
     selectedTickerFull = symbol;
     const container = document.getElementById("selectedStock");
-    container.innerHTML = "";
+    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: block; margin: 10px;">Back to Portfolio</button>';
 
     //////////////////////////// Render stock attributes here //////////////////////////////////////
     renderTitleRow(container);
     renderStockDetail(container);
 
     //////////////////////////// Calls render graph here //////////////////////////////////////
+    // Update the graph to show this specific stock
+    if (selectedTicker) {
+        selectedStock = selectedTicker;
+        updateChartForStock(selectedTicker);
+    }
 
+    // Add listener for clear button
+    const clearBtn = document.getElementById("clearStockSelection");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", clearStockSelection);
+    }
 
     /////////////////////////// Renders recommendation here //////////////////////////////////
+}
+
+function clearStockSelection() {
+    selectedTicker = "";
+    selectedTickerFull = [];
+    selectedStock = null;
+    const container = document.getElementById("selectedStock");
+    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: none; margin: 10px;">Back to Portfolio</button>';
+
+    // Return to portfolio view
+    if (currentUserEmail) {
+        updateChartForPortfolio();
+    }
 }
 
 function renderTitleRow(container) {
@@ -339,6 +371,9 @@ async function loadSetting() {
         document.getElementById("settingExchange").dispatchEvent(new Event("change"));
         await refreshMenu();
     }
+
+    // Trigger graph to load user's portfolio
+    onUserLogin(username);
 }
 
 async function loadSettingDropdown() {
@@ -442,6 +477,11 @@ function addHoldListener() {
         });
         await refreshMenu();
         handleStockSelection(selectedTickerFull);
+
+        // If no stock is selected, refresh the portfolio graph
+        if (!selectedTicker && currentUserEmail) {
+            updateChartForPortfolio();
+        }
     });
 }
 
@@ -591,6 +631,190 @@ function validateReportFields() {
             parsed[input.name] = val;
         }
     });
+}
+
+
+//////////////////////////// Stock Graph Functions //////////////////////////////////////
+
+// Update chart to show portfolio (all held stocks)
+async function updateChartForPortfolio() {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    if (!currentUserEmail) {
+        if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
+        if (priceChart) {
+            priceChart.destroy();
+            priceChart = null;
+        }
+        return;
+    }
+
+    try {
+        // Get user's held stocks
+        const response = await fetch(`/user-held-stocks/${encodeURIComponent(currentUserEmail)}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = 'You do not hold any stocks';
+            if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        // Fetch price history for all held stocks
+        const priceDataPromises = data.data.map(stock =>
+            fetch(`/price-history/${stock.ticker}`).then(res => res.json())
+        );
+        const priceDataResults = await Promise.all(priceDataPromises);
+
+        // Prepare datasets for chart
+        const datasets = [];
+        priceDataResults.forEach((result, index) => {
+            if (result.success && result.data.length > 0) {
+                const stock = data.data[index];
+                datasets.push({
+                    label: stock.ticker,
+                    data: result.data.map(point => ({
+                        x: new Date(point.date),
+                        y: point.close
+                    })),
+                    borderColor: CHART_COLORS[index % CHART_COLORS.length],
+                    backgroundColor: 'transparent',
+                    tension: 0.1
+                });
+            }
+        });
+
+        if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart(datasets);
+
+    } catch (error) {
+        console.error('Error updating portfolio chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading portfolio data';
+    }
+}
+
+// Update chart to show single stock
+async function updateChartForStock(ticker) {
+    const chartMessage = document.getElementById('chartMessage');
+    const chartTitle = document.getElementById('chartTitle');
+
+    try {
+        const response = await fetch(`/price-history/${ticker}`);
+        const data = await response.json();
+
+        if (!data.success || data.data.length === 0) {
+            if (chartMessage) chartMessage.textContent = `No price history data for ${ticker}`;
+            if (priceChart) {
+                priceChart.destroy();
+                priceChart = null;
+            }
+            return;
+        }
+
+        const dataset = {
+            label: ticker,
+            data: data.data.map(point => ({
+                x: new Date(point.date),
+                y: point.close
+            })),
+            borderColor: CHART_COLORS[0],
+            backgroundColor: 'transparent',
+            tension: 0.1
+        };
+
+        if (chartTitle) chartTitle.textContent = `${ticker} Price History`;
+        if (chartMessage) chartMessage.textContent = '';
+        renderChart([dataset]);
+
+    } catch (error) {
+        console.error('Error updating stock chart:', error);
+        if (chartMessage) chartMessage.textContent = 'Error loading stock data';
+    }
+}
+
+// Render the chart with given datasets
+function renderChart(datasets) {
+    const ctx = document.getElementById('priceChart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (priceChart) {
+        priceChart.destroy();
+    }
+
+    // Create new chart
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price (USD)',
+                        color: '#ffffff'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: '#404040'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Function to be called by login component when user logs in
+function onUserLogin(email) {
+    currentUserEmail = email;
+    selectedStock = null;
+    updateChartForPortfolio();
+}
+
+// Function to be called by login component when user logs out
+function onUserLogout() {
+    currentUserEmail = null;
+    selectedStock = null;
+    if (priceChart) {
+        priceChart.destroy();
+        priceChart = null;
+    }
+    const chartMessage = document.getElementById('chartMessage');
+    if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
 }
 
 // ---------------------------------------------------------------
