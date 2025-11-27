@@ -164,12 +164,14 @@ router.get('/holding', async (req, res) => {
 
 router.put('/holding', async (req, res) => {
     const { email, ticker, add } = req.body;
+    console.log('PUT /holding - email:', email, 'ticker:', ticker, 'add:', add);
     let result = false;
     if (add) {
         result = await appService.addHolding(email, ticker);
     } else {
         result = await appService.delHolding(email, ticker);
     }
+    console.log('PUT /holding - result:', result);
     res.json({ success: result });
 });
 

@@ -12,7 +12,8 @@ const dbConfig = {
     poolMin: 1,
     poolMax: 3,
     poolIncrement: 1,
-    poolTimeout: 60
+    poolTimeout: 60,
+    transportConnectTimeout: 60  // Increase connection timeout from default 20s to 60s
 };
 
 // Debug: Log connection details (password masked)
@@ -248,6 +249,7 @@ async function initiateDB() {
             CREATE TABLE Holds(
                 email VARCHAR(255),
                 ticker VARCHAR(255),
+                holdTime DATE,
                 FOREIGN KEY (email) REFERENCES Users(email) ON DELETE CASCADE,
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
@@ -473,13 +475,15 @@ async function verifyHolding(email, ticker) {
 async function addHolding(email, ticker) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
-            INSERT INTO Holds
-            VALUES (:1, :2)`,
+            INSERT INTO Holds (email, ticker, holdTime)
+            VALUES (:1, :2, SYSDATE)`,
             [email, ticker],
             { autoCommit: true }
         );
+        console.log('addHolding result:', result.rowsAffected, 'for email:', email, 'ticker:', ticker);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
+    }).catch((err) => {
+        console.error('Error in addHolding:', err);
         return false;
     });
 }
@@ -492,8 +496,10 @@ async function delHolding(email, ticker) {
             [email, ticker],
             { autoCommit: true }
         );
+        console.log('delHolding result:', result.rowsAffected, 'for email:', email, 'ticker:', ticker);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
+    }).catch((err) => {
+        console.error('Error in delHolding:', err);
         return false;
     });
 }
