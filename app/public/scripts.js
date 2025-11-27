@@ -276,7 +276,8 @@ function addSettingListener() {
     const login = document.getElementById("userSetting");
     const cancel = document.getElementById("settingCancel");
     const submit = document.getElementById("settingSubmit");
-    if (!login || !cancel || !submit) return;
+    const del = document.getElementById("settingDelete");
+    if (!login || !cancel || !submit || !del) return;
 
     login.addEventListener("click", () => {
         document.getElementById("userSettingPopup").style.display = "flex";
@@ -289,6 +290,10 @@ function addSettingListener() {
     submit.addEventListener("click", async (e) => {
         await handleSettingUpdate(e);
     });
+
+    del.addEventListener("click", async (e) => {
+        await handleDeleteUser(e);
+    });
 }
 
 let username = "";
@@ -298,7 +303,7 @@ async function handleSettingUpdate(e) {
 
     if (username === "") { // Not logged in, insert new / load existing user
         const email = document.getElementById("settingEmail").value.trim();
-        if (email.length < 7 || !email.includes('@')) {
+        if (email.length < 7 || !email.includes('@') || email.includes(' ')) {
             document.getElementById("settingMessage").innerText = "Invalid email";
             return;
         }
@@ -317,6 +322,7 @@ async function loadSetting() {
     document.getElementById("settingIndustry").parentElement.style.display = "flex";
     document.getElementById("settingExchange").parentElement.style.display = "flex";
     document.getElementById("settingRec").parentElement.style.display = "flex";
+    document.getElementById("settingDelete").hidden = false;
     await loadSettingDropdown();
 
     const response = await fetch('/user', {
@@ -352,6 +358,11 @@ async function loadSettingDropdown() {
         const selectEx = document.getElementById("settingExchange");
         const exLabel = document.getElementById("exchangeTickers");
 
+        selectInd.innerHTML = '<option value="" selected> </option>';
+        selectEx.innerHTML = '<option value="" selected> </option>';
+        indLabel.textContent = "";
+        exLabel.textContent = "";
+
         responseData.industry.forEach(([industry, count]) => {
             const opt = document.createElement("option");
             opt.value = industry;
@@ -359,13 +370,6 @@ async function loadSettingDropdown() {
             opt.dataset.count = count;
             selectInd.appendChild(opt);
         });
-        selectInd.addEventListener("change", () => {
-            indLabel.textContent = "";
-            if (selectInd.value) {
-                indLabel.textContent = `${selectInd.options[selectInd.selectedIndex].dataset.count} tickers`;
-            }
-        });
-
         responseData.exchange.forEach(([exchange, count]) => {
             const opt = document.createElement("option");
             opt.value = exchange;
@@ -373,12 +377,21 @@ async function loadSettingDropdown() {
             opt.dataset.count = count;
             selectEx.appendChild(opt);
         });
-        selectEx.addEventListener("change", () => {
+
+        selectInd.onchange = () => {
+            indLabel.textContent = "";
+            if (selectInd.value) {
+                const option = selectInd.options[selectInd.selectedIndex];
+                indLabel.textContent = `${option.dataset.count} tickers`;
+            }
+        };
+        selectEx.onchange = () => {
             exLabel.textContent = "";
             if (selectEx.value) {
-                exLabel.textContent = `${selectEx.options[selectEx.selectedIndex].dataset.count} tickers`;
+                const option = selectEx.options[selectEx.selectedIndex];
+                exLabel.textContent = `${option.dataset.count} tickers`;
             }
-        });
+        };
     }
 }
 
@@ -409,6 +422,48 @@ async function updateSetting() {
     }
 }
 
+async function handleDeleteUser(e) {
+    e.preventDefault();
+    const msg = document.getElementById("settingMessage");
+
+    const response = await fetch('/user', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: username
+        })
+    });
+    const responseData = await response.json();
+
+    if (response.ok && responseData.success) {
+        msg.innerText = "Successfully deleted!";
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        resetSettingPopup();
+        await refreshMenu();
+    } else {
+        msg.innerText = "Error deleting user";
+    }
+}
+
+function resetSettingPopup() {
+    document.getElementById("settingEmail").parentElement.style.display = "flex";
+    document.getElementById("settingEmail").value = "";
+    document.getElementById("settingIndustry").parentElement.style.display = "none";
+    document.getElementById("settingExchange").parentElement.style.display = "none";
+    document.getElementById("settingRec").parentElement.style.display = "none";
+    document.getElementById("settingRec").checked = false;
+    document.getElementById("settingMessage").innerText = "";
+    document.getElementById("settingDelete").hidden = true;
+
+    username = "";
+    document.getElementById("userSetting").innerText = "Login";
+    document.getElementById("userSettingPopup").style.display = "none";
+
+    parent.frames["contents"].document.dispatchEvent(new Event("click"));
+}
+
 
 //////////////////////////// Stock holding logic //////////////////////////////////////
 function addHoldListener() {
@@ -429,7 +484,11 @@ function addHoldListener() {
             } else {
                 btn.textContent = "Hold";
             }
-       }
+        } else {
+            btn.disabled = true;
+            btn.style.cursor = "not-allowed";
+            document.getElementById("holdButton").dataset.tooltip = "Please login";
+        }
     });
 
     btn.addEventListener('click', async() => {
@@ -501,6 +560,9 @@ async function handleInsertReport(e) {
         const accessNum = accessInput.value.trim();
         if (!accessNum) {
             error.textContent = "Please enter an access number";
+            return;
+        } else if (!(/^[0-9-]+$/.test(accessNum))) {
+            error.textContent = "Invalid characters in access number";
             return;
         }
 
@@ -616,7 +678,7 @@ function validateReportFields() {
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    // document.getElementById("initDB").addEventListener("click", initDB);
+    //document.getElementById("initDB").addEventListener("click", initDB);
     populateMenu({preferredIndustry: "", display: false});
     addSearchBarListener();
     addSettingListener();

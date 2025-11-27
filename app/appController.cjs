@@ -128,6 +128,11 @@ router.put('/user', async (req, res) => {
     }
 });
 
+router.delete('/user', async (req, res) => {
+    const { email } = req.body;
+    res.json({success: await appService.delUser(email)});
+});
+
 router.get('/holding', async (req, res) => {
     const result = await appService.verifyHolding(req.query.email, req.query.ticker);
     res.json({ exist: result });

@@ -304,6 +304,20 @@ async function updateUser(email, industry, exchange, rec) {
     });
 }
 
+async function delUser(email) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            DELETE FROM Users
+            WHERE email = :1`,
+            [email],
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
 async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT * FROM Stock ORDER BY ticker');
@@ -422,6 +436,7 @@ module.exports = {
     insertPricePerStock,
     fetchUser,
     updateUser,
+    delUser,
     fetchSettingDropdown,
     fetchAllStock,
     filterStock,
