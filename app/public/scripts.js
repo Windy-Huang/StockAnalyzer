@@ -464,6 +464,7 @@ function addHoldListener() {
     });
 
     btn.addEventListener('click', async() => {
+        const action = btn.textContent === "Hold" ? "added to" : "removed from";
         const response = await fetch('/holding', {
             method: 'PUT',
             headers: {
@@ -476,11 +477,19 @@ function addHoldListener() {
             })
         });
         await refreshMenu();
-        handleStockSelection(selectedTickerFull);
 
-        // If no stock is selected, refresh the portfolio graph
-        if (!selectedTicker && currentUserEmail) {
-            updateChartForPortfolio();
+        // Navigate back to portfolio to see updated holdings in the overlaid graph
+        clearStockSelection();
+
+        // Show a brief confirmation message
+        const chartMessage = document.getElementById('chartMessage');
+        if (chartMessage) {
+            chartMessage.textContent = `${selectedTicker} ${action} your portfolio`;
+            setTimeout(() => {
+                if (chartMessage.textContent === `${selectedTicker} ${action} your portfolio`) {
+                    chartMessage.textContent = '';
+                }
+            }, 3000);
         }
     });
 }
