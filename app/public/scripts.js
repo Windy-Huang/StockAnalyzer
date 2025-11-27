@@ -41,7 +41,7 @@ async function initDB() {
 let selectedTicker = "";
 let selectedTickerFull = [];
 
-function handleStockSelection(symbol) {
+async function handleStockSelection(symbol) {
     selectedTicker = symbol[0];
     selectedTickerFull = symbol;
     const container = document.getElementById("selectedStock");
@@ -49,7 +49,7 @@ function handleStockSelection(symbol) {
 
     //////////////////////////// Render stock attributes here //////////////////////////////////////
     renderTitleRow(container);
-    renderStockDetail(container);
+    await renderStockDetail(container);
 
     //////////////////////////// Calls render graph here //////////////////////////////////////
 
@@ -76,7 +76,7 @@ function renderTitleRow(container) {
     titleRow.style.gap = "10px";
 
     const header = document.createElement("h2");
-    header.textContent = `Ticker: ${selectedTicker}`;
+    header.textContent = `${selectedTickerFull[1]} (${selectedTicker})`;
     header.style.margin = "8px";
     titleRow.appendChild(header);
 
@@ -90,17 +90,17 @@ function renderTitleRow(container) {
     container.appendChild(titleRow);
 }
 
-function renderStockDetail(container) {
-    //////////////////////////// Replace with attributes of price history //////////////////////////////////////
-    const attributes = [
-        { label: "Company Name: ", value: selectedTickerFull[1] },
-        { label: "Country: ", value: selectedTickerFull[2] },
-        { label: "Industry: ", value: selectedTickerFull[3] },
-        { label: "Exchange: ", value: selectedTickerFull[4] },
-        { label: "Market Capital: $", value: selectedTickerFull[5] }
+async function renderStockDetail(container) {
+    const metaData = [
+        { key: "timestamp", label: "Last updated: " },
+        { key: "openPrice", label: "Open price: $" },
+        { key: "highPrice", label: "High price: $" },
+        { key: "lowPrice", label: "Low price: $" },
+        { key: "closePrice", label: "Close price: $" },
+        { key: "volume", label: "Volume: " }
     ];
 
-    attributes.forEach(row => {
+    metaData.forEach(row => {
         const rowDiv = document.createElement("div");
         rowDiv.style.display = "flex";
         rowDiv.style.alignItems = "center";
@@ -113,7 +113,7 @@ function renderStockDetail(container) {
         rowDiv.appendChild(labelSpan);
 
         const valueSpan = document.createElement("span");
-        valueSpan.textContent = row.value;
+        valueSpan.dataset.field = row.key;
         rowDiv.appendChild(valueSpan);
 
         const spacer = document.createElement("span");
@@ -125,13 +125,44 @@ function renderStockDetail(container) {
         closeBtn.textContent = "X";
         closeBtn.style.width = "20px";
         closeBtn.style.padding = "0px";
-        closeBtn.addEventListener("click", () => {
+        closeBtn.addEventListener("click", async () => {
             rowDiv.remove();
+            await updateStockPriceDetail(container);
         });
         rowDiv.appendChild(closeBtn);
 
         container.appendChild(rowDiv);
     });
+
+    await updateStockPriceDetail(container);
+}
+
+async function updateStockPriceDetail(container) {
+    let fields = "";
+    const renderedFields = container.querySelectorAll("[data-field]");
+    renderedFields.forEach(span => {
+        const key = span.dataset.field;
+        fields = fields + key + ", ";
+    });
+    fields = fields.replace(/, $/, '');
+
+    const response = await fetch('/price-history', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            ticker: selectedTicker,
+            fields: fields
+        })
+    });
+    const responseData = await response.json();
+
+    if (response.ok) {
+        for (let i = 0; i < renderedFields.length; i++) {
+            renderedFields[i].textContent = responseData.data[0][i];
+        }
+    }
 }
 
 

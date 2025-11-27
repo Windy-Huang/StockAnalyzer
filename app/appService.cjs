@@ -424,6 +424,23 @@ async function delHolding(email, ticker) {
     });
 }
 
+async function fetchRecentPriceHistory(ticker, fields) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            SELECT ${fields}
+            FROM PriceHistory
+            WHERE ticker = :1
+            ORDER BY timestamp DESC
+            FETCH FIRST 1 ROW ONLY`,
+            [ticker]
+        );
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
@@ -444,5 +461,6 @@ module.exports = {
     fetchLeastPopularStock,
     verifyHolding,
     addHolding,
-    delHolding
+    delHolding,
+    fetchRecentPriceHistory
 };

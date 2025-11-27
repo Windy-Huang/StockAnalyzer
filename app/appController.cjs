@@ -149,4 +149,10 @@ router.put('/holding', async (req, res) => {
     res.json({ success: result });
 });
 
+router.post('/price-history', async (req, res) => {
+    const { ticker, fields } = req.body;
+    const result = await appService.fetchRecentPriceHistory(ticker, fields);
+    res.json({ data: result });
+});
+
 module.exports = router;
