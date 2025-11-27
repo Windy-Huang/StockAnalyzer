@@ -85,24 +85,27 @@
         </div>
     </div>
 
-    <div id="selectedStock" style="padding-left: 10px">
-        <button id="clearStockSelection" style="width: 180px; display: none; margin: 10px;">Back to Portfolio</button>
-    </div>
-
     <!-- Stock Price History Chart -->
     <div style="width: 90%; margin: 20px auto;">
         <h3 id="chartTitle" style="text-align: center;">Portfolio Price History</h3>
 
-        <!-- Holding Duration Filter -->
-        <div id="holdingDurationFilter" style="text-align: center; margin: 15px 0;">
-            <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
-            <select id="durationSelect" style="padding: 5px 10px;">
-                <option value="" selected>All holdings (no filter)</option>
-                <option value="day">Held at least 1 day</option>
-                <option value="week">Held at least 1 week</option>
-                <option value="month">Held at least 1 month</option>
-                <option value="year">Held at least 1 year</option>
-            </select>
+        <!-- Holding Duration Filter / Back to Portfolio Button (toggled based on view) -->
+        <div id="portfolioControls" style="text-align: center; margin: 15px 0;">
+            <!-- This will be dynamically updated by JavaScript -->
+            <div id="holdingDurationFilter">
+                <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
+                <select id="durationSelect" style="padding: 5px 10px;">
+                    <option value="" selected>All holdings (no filter)</option>
+                    <option value="day">Held at least 1 day</option>
+                    <option value="week">Held at least 1 week</option>
+                    <option value="month">Held at least 1 month</option>
+                    <option value="year">Held at least 1 year</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="selectedStock" style="padding-left: 10px">
+            <!-- Stock details will be added here when a stock is selected -->
         </div>
 
         <p id="chartMessage" style="text-align: center; margin-top: 10px;">Please login to view your portfolio</p>

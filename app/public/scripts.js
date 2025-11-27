@@ -53,8 +53,15 @@ let selectedTickerFull = [];
 function handleStockSelection(symbol) {
     selectedTicker = symbol[0];
     selectedTickerFull = symbol;
+
+    // Hide the duration filter and show the back button
+    const portfolioControls = document.getElementById("portfolioControls");
+    if (portfolioControls) {
+        portfolioControls.innerHTML = '<button id="clearStockSelection" style="padding: 8px 20px; font-size: 14px;">Back to Portfolio</button>';
+    }
+
     const container = document.getElementById("selectedStock");
-    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: block; margin: 10px;">Back to Portfolio</button>';
+    container.innerHTML = '';
 
     //////////////////////////// Render stock attributes here //////////////////////////////////////
     renderTitleRow(container);
@@ -80,14 +87,34 @@ function clearStockSelection() {
     selectedTicker = "";
     selectedTickerFull = [];
     selectedStock = null;
-    const container = document.getElementById("selectedStock");
-    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: none; margin: 10px;">Back to Portfolio</button>';
 
-    // Return to portfolio view with current duration filter
+    // Clear stock details
+    const container = document.getElementById("selectedStock");
+    container.innerHTML = '';
+
+    // Show the duration filter again and hide the back button
+    const portfolioControls = document.getElementById("portfolioControls");
+    if (portfolioControls) {
+        portfolioControls.innerHTML = `
+            <div id="holdingDurationFilter">
+                <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
+                <select id="durationSelect" style="padding: 5px 10px;">
+                    <option value="" selected>All holdings (no filter)</option>
+                    <option value="day">Held at least 1 day</option>
+                    <option value="week">Held at least 1 week</option>
+                    <option value="month">Held at least 1 month</option>
+                    <option value="year">Held at least 1 year</option>
+                </select>
+            </div>
+        `;
+
+        // Re-add the event listener for the newly created dropdown
+        addHoldingDurationFilterListener();
+    }
+
+    // Return to portfolio view (no filter initially)
     if (currentUserEmail) {
-        const durationSelect = document.getElementById("durationSelect");
-        const duration = durationSelect ? durationSelect.value : null;
-        updateChartForPortfolio(duration || null);
+        updateChartForPortfolio();
     }
 }
 
