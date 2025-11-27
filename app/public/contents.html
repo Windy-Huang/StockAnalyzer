@@ -92,6 +92,19 @@
     <!-- Stock Price History Chart -->
     <div style="width: 90%; margin: 20px auto;">
         <h3 id="chartTitle" style="text-align: center;">Portfolio Price History</h3>
+
+        <!-- Holding Duration Filter -->
+        <div id="holdingDurationFilter" style="text-align: center; margin: 15px 0;">
+            <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
+            <select id="durationSelect" style="padding: 5px 10px;">
+                <option value="" selected>All holdings (no filter)</option>
+                <option value="day">Held less than 1 day</option>
+                <option value="week">Held less than 1 week</option>
+                <option value="month">Held less than 1 month</option>
+                <option value="year">Held less than 1 year</option>
+            </select>
+        </div>
+
         <p id="chartMessage" style="text-align: center; margin-top: 10px;">Please login to view your portfolio</p>
         <canvas id="priceChart"></canvas>
     </div>
