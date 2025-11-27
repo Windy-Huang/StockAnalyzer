@@ -141,6 +141,243 @@ async function insertDemotable(id, name) {
     });
 }
 
+async function insertAnalyst(ticker, rating) {
+    return await withOracleDB(async (connection) => {
+        const timestamp = await connection.execute(
+            `select timestamp from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const idNum = await connection.execute(
+            `select priceHistoryID from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const reportIdNum = await connection.execute(
+            `select reportID from Report 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const result1 = await connection.execute(
+            `INSERT INTO AnalystRating (analystRatingID, ticker, recommendation, timestamp) 
+            VALUES (:idNum, :ticker, :rating, :timestamp)`,
+            [idNum.rows[0][0], ticker, rating, timestamp.rows[0][0]],
+            { autoCommit: true }
+        );
+        const result2 = await connection.execute(
+            `INSERT INTO Contributes (reportID, analystRatingID) 
+            VALUES (:reportIdNum, :idNum)`,
+            [reportIdNum.rows[0][0], idNum.rows[0][0]],
+            { autoCommit: true }
+        );
+        const result3 = await connection.execute(
+            `INSERT INTO Derives (priceHistoryID, analystRatingID) 
+            VALUES (:priceHistoryID, :analystRatingID)`,
+            [idNum.rows[0][0], idNum.rows[0][0]],
+            { autoCommit: true }
+        );
+
+        // return result.rowsAffected && result.rowsAffected > 0;
+        return true;
+    }).catch(() => {
+        return false;
+    });
+}
+
+async function checkAlreadyExists(ticker) {
+    return await withOracleDB(async (connection) => {
+        const alreadyExists = await connection.execute(
+            `select count(*) from AnalystRating where ticker=:ticker and timestamp in (
+            select max(timestamp) from PriceHistory where ticker=:ticker)`,
+            [ticker, ticker]);
+        if (alreadyExists.rows[0][0] == 1) {//exists
+            const answer = await connection.execute(
+            `select recommendation from AnalystRating where ticker=:ticker and timestamp in (
+            select max(timestamp) from PriceHistory where ticker=:ticker)`,
+            [ticker, ticker]);
+            return answer.rows[0][0];
+        }
+        else {//doesn't exist
+            return -1;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation1(ticker) {
+    return await withOracleDB(async (connection) => {
+        const latestPriceAndDate = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const price1year = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker and timestamp<add_months(:latestDate, -12) order by timestamp desc`,
+            [ticker, latestPriceAndDate.rows[0][1]]);
+        if (latestPriceAndDate.rows[0][0] / (latestPriceAndDate.rows[0][0] - price1year.rows[0][0]) < 20) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation2(ticker) {
+    return await withOracleDB(async (connection) => {
+        const latestEPSAndDate = await connection.execute(
+            `select EPS, timestamp from Report 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const EPS1year = await connection.execute(
+            `select EPS, timestamp from Report 
+            where ticker=:ticker and timestamp<add_months(:latestDate, -10) 
+            order by timestamp desc`,
+            [ticker, latestEPSAndDate.rows[0][1]]);//10 months instead of 12 months in case the 
+            //report for each year is not released on exactly the same date
+        if ((latestEPSAndDate.rows[0][0] - EPS1year.rows[0][0]) / EPS1year.rows[0][0] > 0.1) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation3(ticker) {
+    return await withOracleDB(async (connection) => {
+        const incomeAndEquity = await connection.execute(
+            `select netIncome, equity from Report 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        if ((incomeAndEquity.rows[0][0]/incomeAndEquity.rows[0][1]) > 0.15) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation4(ticker) {
+    return await withOracleDB(async (connection) => {
+        const latestPriceAndDate = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        if ((latestPriceAndDate.rows[0][0] + latestPriceAndDate.rows[1][0] + 
+            latestPriceAndDate.rows[2][0] + latestPriceAndDate.rows[3][0] + 
+            latestPriceAndDate.rows[4][0] + latestPriceAndDate.rows[5][0] + 
+            latestPriceAndDate.rows[6][0] + latestPriceAndDate.rows[7][0] + 
+            latestPriceAndDate.rows[8][0] + latestPriceAndDate.rows[9][0] + 
+            latestPriceAndDate.rows[10][0] + latestPriceAndDate.rows[11][0] + 
+            latestPriceAndDate.rows[12][0] + latestPriceAndDate.rows[13][0] + 
+            latestPriceAndDate.rows[14][0] + latestPriceAndDate.rows[15][0] + 
+            latestPriceAndDate.rows[16][0] + latestPriceAndDate.rows[17][0] + 
+            latestPriceAndDate.rows[18][0] + latestPriceAndDate.rows[19][0]) * 2.5 > 
+            (latestPriceAndDate.rows[0][0] + latestPriceAndDate.rows[1][0] + 
+            latestPriceAndDate.rows[2][0] + latestPriceAndDate.rows[3][0] + 
+            latestPriceAndDate.rows[4][0] + latestPriceAndDate.rows[5][0] + 
+            latestPriceAndDate.rows[6][0] + latestPriceAndDate.rows[7][0] + 
+            latestPriceAndDate.rows[8][0] + latestPriceAndDate.rows[9][0] + 
+            latestPriceAndDate.rows[10][0] + latestPriceAndDate.rows[11][0] + 
+            latestPriceAndDate.rows[12][0] + latestPriceAndDate.rows[13][0] + 
+            latestPriceAndDate.rows[14][0] + latestPriceAndDate.rows[15][0] + 
+            latestPriceAndDate.rows[16][0] + latestPriceAndDate.rows[17][0] + 
+            latestPriceAndDate.rows[18][0] + latestPriceAndDate.rows[19][0] + 
+            latestPriceAndDate.rows[20][0] + latestPriceAndDate.rows[21][0] + 
+            latestPriceAndDate.rows[22][0] + latestPriceAndDate.rows[23][0] + 
+            latestPriceAndDate.rows[24][0] + latestPriceAndDate.rows[25][0] + 
+            latestPriceAndDate.rows[26][0] + latestPriceAndDate.rows[27][0] + 
+            latestPriceAndDate.rows[28][0] + latestPriceAndDate.rows[29][0] + 
+            latestPriceAndDate.rows[30][0] + latestPriceAndDate.rows[31][0] + 
+            latestPriceAndDate.rows[32][0] + latestPriceAndDate.rows[33][0] + 
+            latestPriceAndDate.rows[34][0] + latestPriceAndDate.rows[35][0] + 
+            latestPriceAndDate.rows[36][0] + latestPriceAndDate.rows[37][0] + 
+            latestPriceAndDate.rows[38][0] + latestPriceAndDate.rows[39][0] + 
+            latestPriceAndDate.rows[40][0] + latestPriceAndDate.rows[41][0] + 
+            latestPriceAndDate.rows[42][0] + latestPriceAndDate.rows[43][0] + 
+            latestPriceAndDate.rows[44][0] + latestPriceAndDate.rows[45][0] + 
+            latestPriceAndDate.rows[46][0] + latestPriceAndDate.rows[47][0] + 
+            latestPriceAndDate.rows[48][0] + latestPriceAndDate.rows[49][0])) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation5(ticker) {
+    return await withOracleDB(async (connection) => {
+        const latestPriceAndDate = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        const price1year = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker and timestamp<add_months(:latestDate, -12) order by timestamp desc`,
+            [ticker, latestPriceAndDate.rows[0][1]]);
+        // return (latestPriceAndDate.rows[0][0] - price1year.rows[0][0]) / price1year.rows[0][0];
+        if ((latestPriceAndDate.rows[0][0] - price1year.rows[0][0]) / price1year.rows[0][0] > 0.2) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation6(ticker) {
+    return await withOracleDB(async (connection) => {
+        const incomeAndEquity = await connection.execute(
+            `select totalDebt, equity from Report 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        if ((incomeAndEquity.rows[0][0]/incomeAndEquity.rows[0][1]) < 1) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
+async function getRecommendation7(ticker) {
+    return await withOracleDB(async (connection) => {
+        const dividend = await connection.execute(
+            `select sum(amountPerShare) 
+            from Divident d natural join Updates u 
+            where ticker=:ticker and timestamp>add_months((
+            select max(p1.timestamp) from PriceHistory p1 
+            where p1.ticker=:ticker), -12)`,
+            [ticker, ticker]);
+        const latestPriceAndDate = await connection.execute(
+            `select openPrice, timestamp from PriceHistory 
+            where ticker=:ticker order by timestamp desc`,
+            [ticker]);
+        // return dividend.rows[0][0] / latestPriceAndDate.rows[0][0];
+        if ((dividend.rows[0][0] / latestPriceAndDate.rows[0][0]) > 0.02) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }).catch(() => {
+        return -1;
+    });
+}
+
 async function updateNameDemotable(oldName, newName) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(
@@ -587,5 +824,14 @@ module.exports = {
     delHolding,
     getUserHeldStocks,
     getPriceHistory,
-    getAllStocks
+    getAllStocks,
+    getRecommendation1,
+    getRecommendation2,
+    getRecommendation3,
+    getRecommendation4,
+    getRecommendation5,
+    getRecommendation6,
+    getRecommendation7,
+    insertAnalyst,
+    checkAlreadyExists
 };
