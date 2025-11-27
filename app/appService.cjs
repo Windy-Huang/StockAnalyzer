@@ -566,6 +566,95 @@ async function getAllStocks() {
     });
 }
 
+// Get stocks filtered by holding duration using HAVING clause
+// durationFilter: 'day' (< 1 day), 'week' (< 1 week), 'month' (< 1 month), 'year' (< 1 year)
+async function getStocksByHoldingDuration(durationFilter) {
+    return await withOracleDB(async (connection) => {
+        let durationDays;
+        switch(durationFilter) {
+            case 'day':
+                durationDays = 1;
+                break;
+            case 'week':
+                durationDays = 7;
+                break;
+            case 'month':
+                durationDays = 30;
+                break;
+            case 'year':
+                durationDays = 365;
+                break;
+            default:
+                return [];
+        }
+
+        const result = await connection.execute(`
+            SELECT h.ticker, s.name, COUNT(*) as userCount,
+                   ROUND(AVG(SYSDATE - h.holdTime), 2) as avgHoldDays
+            FROM Holds h
+            JOIN Stock s ON h.ticker = s.ticker
+            GROUP BY h.ticker, s.name
+            HAVING AVG(SYSDATE - h.holdTime) < :1
+            ORDER BY avgHoldDays DESC`,
+            [durationDays]
+        );
+
+        return result.rows.map(row => ({
+            ticker: row[0],
+            name: row[1],
+            userCount: row[2],
+            avgHoldDays: row[3]
+        }));
+    }).catch((err) => {
+        console.error('Error in getStocksByHoldingDuration:', err);
+        return [];
+    });
+}
+
+// Get user's held stocks filtered by holding duration using HAVING clause
+// This function filters stocks held by a specific user based on how long they've held them
+async function getUserHeldStocksByDuration(email, durationFilter) {
+    return await withOracleDB(async (connection) => {
+        let durationDays;
+        switch(durationFilter) {
+            case 'day':
+                durationDays = 1;
+                break;
+            case 'week':
+                durationDays = 7;
+                break;
+            case 'month':
+                durationDays = 30;
+                break;
+            case 'year':
+                durationDays = 365;
+                break;
+            default:
+                return [];
+        }
+
+        const result = await connection.execute(`
+            SELECT h.ticker, s.name, ROUND(SYSDATE - h.holdTime, 2) as holdDays
+            FROM Holds h
+            JOIN Stock s ON h.ticker = s.ticker
+            WHERE h.email = :1
+            GROUP BY h.ticker, s.name, h.holdTime
+            HAVING (SYSDATE - h.holdTime) < :2
+            ORDER BY holdDays DESC`,
+            [email, durationDays]
+        );
+
+        return result.rows.map(row => ({
+            ticker: row[0],
+            name: row[1],
+            holdDays: row[2]
+        }));
+    }).catch((err) => {
+        console.error('Error in getUserHeldStocksByDuration:', err);
+        return [];
+    });
+}
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
@@ -593,5 +682,7 @@ module.exports = {
     delHolding,
     getUserHeldStocks,
     getPriceHistory,
-    getAllStocks
+    getAllStocks,
+    getStocksByHoldingDuration,
+    getUserHeldStocksByDuration
 };
