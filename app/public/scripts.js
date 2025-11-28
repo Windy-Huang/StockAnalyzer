@@ -80,6 +80,27 @@ async function handleStockSelection(symbol) {
     }
 
     /////////////////////////// Renders recommendation here //////////////////////////////////
+    const tickerValue = selectedTicker;
+    const response = await fetch('/get-recommendation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            ticker: tickerValue,
+        })
+    });
+
+    const responseData = await response.json();
+    const messageElement = document.getElementById('recommendation');
+
+    if (responseData.success) {
+        const recommendationSum = responseData.sum;
+        const recommendationMsg = responseData.msg;
+        messageElement.textContent = `${recommendationMsg} (${recommendationSum}/7)`;
+    } else {
+        messageElement.textContent = "Error getting recommendation!";
+    }
 }
 
 function clearStockSelection() {
