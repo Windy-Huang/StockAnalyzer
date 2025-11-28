@@ -345,6 +345,15 @@ async function initiateDB() {
             await connection.execute('DROP TABLE Users CASCADE CONSTRAINTS');
         } catch (err) { console.log('Users might not exist'); }
         try {
+            await connection.execute('DROP TABLE Derives CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Derives might not exist'); }
+        try {
+            await connection.execute('DROP TABLE Contributes CASCADE CONSTRAINTS');
+        } catch (err) { console.log('Contributes might not exist'); }
+        try {
+            await connection.execute('DROP TABLE AnalystRating CASCADE CONSTRAINTS');
+        } catch (err) { console.log('AnalystRating might not exist'); }
+        try {
             await connection.execute('DROP TABLE PriceHistory CASCADE CONSTRAINTS');
         } catch (err) { console.log('PriceHistory might not exist'); }
         try {
@@ -424,6 +433,30 @@ async function initiateDB() {
                 FOREIGN KEY (email) REFERENCES Users(email) ON DELETE CASCADE,
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
+            )`);
+        await connection.execute(`
+            CREATE TABLE AnalystRating(
+                analystRatingID INT PRIMARY KEY,
+                ticker VARCHAR(255),
+                recommendation NUMBER,
+                timestamp DATE,
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
+            )`);
+        await connection.execute(`
+            CREATE TABLE Contributes(
+                reportID VARCHAR(255),
+                analystRatingID INT,
+                FOREIGN KEY (reportID) REFERENCES Report(reportID) ON DELETE CASCADE,
+                FOREIGN KEY (analystRatingID) REFERENCES AnalystRating(analystRatingID) ON DELETE CASCADE,
+                PRIMARY KEY(reportID, analystRatingID)
+            )`);
+        await connection.execute(`
+            CREATE TABLE Derives(
+                priceHistoryID INT,
+                analystRatingID INT,
+                FOREIGN KEY (priceHistoryID) REFERENCES PriceHistory(priceHistoryID) ON DELETE CASCADE,
+                FOREIGN KEY (analystRatingID) REFERENCES AnalystRating(analystRatingID) ON DELETE CASCADE,
+                PRIMARY KEY(priceHistoryID, analystRatingID)
             )`);
         return true;
     }).catch((err) => {

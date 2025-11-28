@@ -798,6 +798,412 @@ VALUES (TO_DATE('06-JUL-25','DD-MON-RR'), 295.25, 296.04, 290.08, 291.97, 882573
 INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
 VALUES (TO_DATE('06-JUL-24','DD-MON-RR'), 295.25, 296.04, 290.08, 291.97, 8825732, 'JPM');
 
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-NOV-25','DD-MON-RR'), 209.5, 210, 202.24, 204.96, 26544148, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-NOV-25','DD-MON-RR'), 194.08, 199.41, 185.63, 197.03, 29594993, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-NOV-25','DD-MON-RR'), 196.855, 203.82, 194.3, 200.28, 31144706, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-NOV-25','DD-MON-RR'), 207.08, 208.31, 193.55, 198.76, 44834071, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-NOV-25','DD-MON-RR'), 231.16, 234, 210.3, 210.69, 27459600, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-NOV-25','DD-MON-RR'), 219.06, 228.1499, 217.31, 225.53, 21679490, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-NOV-25','DD-MON-RR'), 216.205, 223.7, 214.5, 220.49, 21098291, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-NOV-25','DD-MON-RR'), 218.21, 222.8, 215.56, 219.86, 16143779, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-NOV-25','DD-MON-RR'), 210.83, 227.05, 210.77, 222.85, 36053807, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-NOV-25','DD-MON-RR'), 224.99, 225.16, 215.22, 217.57, 30008998, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-NOV-25','DD-MON-RR'), 236.74, 236.81, 226.17, 226.99, 24194992, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-NOV-25','DD-MON-RR'), 236.23, 237.45, 228.89, 236.15, 20686607, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-NOV-25','DD-MON-RR'), 245.95, 247.24, 237.07, 240.83, 16698716, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-NOV-25','DD-MON-RR'), 239, 240.4, 232.35, 239.26, 20969260, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-NOV-25','DD-MON-RR'), 247.94, 249.07, 239.29, 243.8, 18678269, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-NOV-25','DD-MON-RR'), 247.91, 252.4, 247.03, 250.31, 11852118, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-NOV-25','DD-MON-RR'), 249.98, 255.28, 245.185, 248.17, 19772593, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-NOV-25','DD-MON-RR'), 265.24, 265.62, 255.23, 257.85, 15709214, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-OCT-25','DD-MON-RR'), 259.51, 265.81, 256.7097, 262.61, 16898693, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-OCT-25','DD-MON-RR'), 268.74, 269.76, 256.28, 256.89, 27954197, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-OCT-25','DD-MON-RR'), 281.46, 281.62, 271.35, 275.3, 18007149, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-OCT-25','DD-MON-RR'), 283, 285.46, 280.54, 280.83, 12448523, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('26-OCT-25','DD-MON-RR'), 286.57, 287, 279.81, 281.4, 13855836, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-OCT-25','DD-MON-RR'), 285.92, 287.19, 282.245, 283.33, 13194896, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-OCT-25','DD-MON-RR'), 272.96, 283.1, 272.385, 280.07, 16872158, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-OCT-25','DD-MON-RR'), 274.82, 277.2, 269.25, 272.66, 16474016, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-OCT-25','DD-MON-RR'), 278.11, 280.2999, 272.26, 275.15, 18370806, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-OCT-25','DD-MON-RR'), 288.95, 289.24, 275.31, 277.18, 32810748, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-OCT-25','DD-MON-RR'), 303.75, 304.28, 287.5, 291.31, 37653000, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-OCT-25','DD-MON-RR'), 305.6, 322.54, 303.07, 313, 32500863, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-OCT-25','DD-MON-RR'), 304.9, 311.01, 298.92, 303.62, 13698938, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-OCT-25','DD-MON-RR'), 303.57, 304.42, 291.98, 299, 17346186, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-OCT-25','DD-MON-RR'), 298.7, 310.7, 297.74, 308.01, 21703725, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-OCT-25','DD-MON-RR'), 300.28, 307.72, 292.01, 292.96, 28895338, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-OCT-25','DD-MON-RR'), 291.55, 300.97, 287.26, 296.96, 26479833, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-OCT-25','DD-MON-RR'), 285.42, 291.53, 283.6, 288.63, 18982122, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-OCT-25','DD-MON-RR'), 293.22, 293.22, 271, 284.24, 31723384, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-OCT-25','DD-MON-RR'), 292.38, 296.68, 290.8, 291.59, 14076795, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-OCT-25','DD-MON-RR'), 289.6, 294.64, 284, 286.14, 13688407, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('01-OCT-25','DD-MON-RR'), 291.8, 294.97, 286.05, 288.78, 16215460, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-SEP-25','DD-MON-RR'), 278.8, 289.99, 277.88, 289.01, 23378324, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-SEP-25','DD-MON-RR'), 283.69, 284, 275.9, 281.24, 23880810, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-SEP-25','DD-MON-RR'), 284.6, 285.98, 279.61, 282.76, 25778508, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-SEP-25','DD-MON-RR'), 293, 294, 283, 283.46, 25990691, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-SEP-25','DD-MON-RR'), 295.27, 298.75, 288.55, 291.33, 39274883, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-SEP-25','DD-MON-RR'), 311.86, 312.47, 300.03, 308.46, 33765279, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-SEP-25','DD-MON-RR'), 324, 325, 310.05, 313.83, 35280199, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-SEP-25','DD-MON-RR'), 309.63, 329.5, 306.92, 328.15, 44437549, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-SEP-25','DD-MON-RR'), 299, 311.11, 297.32, 308.66, 40776201, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-SEP-25','DD-MON-RR'), 303.035, 303.82, 292, 296.62, 24673116, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-SEP-25','DD-MON-RR'), 307.69, 308.66, 295.03, 301.41, 27707949, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-SEP-25','DD-MON-RR'), 314.06, 319.97, 302.2724, 306.65, 51923268, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-SEP-25','DD-MON-RR'), 306.45, 307.03, 297.29, 302.14, 40004004, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-SEP-25','DD-MON-RR'), 305.79, 307.97, 291.75, 292.18, 51781914, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-SEP-25','DD-MON-RR'), 330.34, 331, 304.6, 307.86, 69986027, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-SEP-25','DD-MON-RR'), 319.19, 345.72, 312.09, 328.33, 131618085, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-SEP-25','DD-MON-RR'), 239.94, 243.49, 234.56, 241.51, 41178697, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-SEP-25','DD-MON-RR'), 239.89, 242.42, 235.31, 238.48, 18803046, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-SEP-25','DD-MON-RR'), 232.55, 234.62, 225.885, 232.8, 15386096, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-SEP-25','DD-MON-RR'), 222, 223.57, 219.5601, 223, 10303069, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-SEP-25','DD-MON-RR'), 225.9, 225.9, 221.75, 223.45, 8749468, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('01-SEP-25','DD-MON-RR'), 222, 225.45, 218.79, 225.3, 10461903, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-AUG-25','DD-MON-RR'), 237.61, 238.22, 223.11, 226.13, 16618641, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-AUG-25','DD-MON-RR'), 235.54, 241.95, 235.12, 240.32, 8691548, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('26-AUG-25','DD-MON-RR'), 234.995, 236.53, 232.68, 235.81, 5637590, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-AUG-25','DD-MON-RR'), 235, 236.905, 232.71, 234.21, 11805197, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-AUG-25','DD-MON-RR'), 237.35, 239.03, 235.27, 235.41, 6308625, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-AUG-25','DD-MON-RR'), 234.06, 238.5, 231.46, 236.37, 9343637, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-AUG-25','DD-MON-RR'), 233.045, 235.9199, 232.43, 233.16, 7403128, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-AUG-25','DD-MON-RR'), 232.18, 235.88, 228.2543, 235.06, 11256417, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-AUG-25','DD-MON-RR'), 249.25, 249.25, 232.23, 234.62, 16819250, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-AUG-25','DD-MON-RR'), 246.2, 249.16, 243.62, 249.07, 6759921, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-AUG-25','DD-MON-RR'), 246.92, 250.63, 242.925, 248.28, 11553988, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-AUG-25','DD-MON-RR'), 244.95, 248.92, 242.57, 244.96, 10285555, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-AUG-25','DD-MON-RR'), 257.17, 257.6699, 242.635, 244.18, 14182078, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-AUG-25','DD-MON-RR'), 252.58, 257.87, 251.08, 253.86, 10001712, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-AUG-25','DD-MON-RR'), 248.4, 254.69, 245.56, 252.68, 9012112, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-AUG-25','DD-MON-RR'), 250.03, 250.8934, 247.86, 250.05, 8313278, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-AUG-25','DD-MON-RR'), 257.71, 257.76, 246.52, 249.39, 11954223, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-AUG-25','DD-MON-RR'), 256.84, 256.84, 251.72, 256.43, 9930222, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-AUG-25','DD-MON-RR'), 255.41, 258.4872, 251.37, 255.67, 11197287, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-AUG-25','DD-MON-RR'), 245.9, 252.91, 245.9, 252.53, 8614784, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('31-JUL-25','DD-MON-RR'), 247.83, 248.41, 242, 244.42, 12718218, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-JUL-25','DD-MON-RR'), 255.765, 260.87, 253.318, 253.77, 15548726, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-JUL-25','DD-MON-RR'), 248.64, 251.05, 245.6, 250.6, 8441378, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-JUL-25','DD-MON-RR'), 248.7, 253.07, 246.59, 249.98, 8415324, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-JUL-25','DD-MON-RR'), 246, 247.78, 243.42, 247.71, 6756775, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-JUL-25','DD-MON-RR'), 242.34, 245.47, 241.43, 245.12, 7149571, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-JUL-25','DD-MON-RR'), 242.41, 244.08, 240.5601, 242.83, 8237851, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-JUL-25','DD-MON-RR'), 239.95, 243.42, 238.66, 241.9, 7255797, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-JUL-25','DD-MON-RR'), 241.98, 242.29, 235.4101, 238.11, 11380866, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-JUL-25','DD-MON-RR'), 245.31, 246.8, 243.24, 243.54, 7348362, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-JUL-25','DD-MON-RR'), 248.5, 249.68, 245, 245.45, 9678072, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-JUL-25','DD-MON-RR'), 243.34, 251.5999, 242.01, 248.75, 17631328, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-JUL-25','DD-MON-RR'), 235.5, 241.33, 233.19, 241.3, 12597452, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-JUL-25','DD-MON-RR'), 232.405, 235.6, 229.2, 234.96, 10728795, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-JUL-25','DD-MON-RR'), 229.45, 230.64, 225.12, 229.28, 11336967, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-JUL-25','DD-MON-RR'), 231.37, 234, 229.87, 230.56, 10208178, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-JUL-25','DD-MON-RR'), 239.94, 240.055, 233.5, 235, 11486345, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-JUL-25','DD-MON-RR'), 235.51, 236.51, 232, 235.81, 10871629, 'ORCL');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-JUL-24','DD-MON-RR'), 235.51, 236.51, 232, 235.81, 10871629, 'ORCL');
+
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-NOV-25','DD-MON-RR'), 201.88, 202.04, 201.7189, 201.92, 1627257, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-NOV-25','DD-MON-RR'), 201.3, 201.9551, 201.24, 201.66, 1234267, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-NOV-25','DD-MON-RR'), 201, 201.91, 200.975, 201.05, 3114537, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-NOV-25','DD-MON-RR'), 201.3, 201.5, 200.575, 200.69, 3904708, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-NOV-25','DD-MON-RR'), 201.65, 202.235, 201.05, 201.12, 1823512, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-NOV-25','DD-MON-RR'), 201.33, 202.165, 201.33, 201.58, 2024769, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-NOV-25','DD-MON-RR'), 201, 202.14, 200.91, 201.81, 2394511, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-NOV-25','DD-MON-RR'), 201.42, 201.5, 200.71, 200.77, 2944424, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-NOV-25','DD-MON-RR'), 201.28, 201.82, 201.05, 201.06, 1767488, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-NOV-25','DD-MON-RR'), 201.8, 202.1, 201.33, 201.34, 1727883, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-NOV-25','DD-MON-RR'), 201.63, 202.22, 201.14, 202, 2634485, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-NOV-25','DD-MON-RR'), 201.44, 202.05, 201.14, 201.93, 1717609, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-NOV-25','DD-MON-RR'), 200.6, 201.53, 200.56, 201.4, 1623203, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-NOV-25','DD-MON-RR'), 200.57, 200.71, 200.37, 200.6, 1755971, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-NOV-25','DD-MON-RR'), 200.55, 200.99, 200.3, 200.38, 1953206, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-NOV-25','DD-MON-RR'), 200.53, 200.96, 200.4, 200.74, 1301173, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-NOV-25','DD-MON-RR'), 200.16, 200.81, 199.81, 200.78, 1772238, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-NOV-25','DD-MON-RR'), 200.05, 200.14, 199.755, 199.89, 2618654, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-OCT-25','DD-MON-RR'), 200.04, 200.45, 200, 200.06, 2267258, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-OCT-25','DD-MON-RR'), 200.2, 200.58, 199.74, 199.92, 2144067, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-OCT-25','DD-MON-RR'), 200.22, 200.6, 200.01, 200.2, 2166734, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-OCT-25','DD-MON-RR'), 200.61, 200.67, 200.25, 200.3, 3019130, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('26-OCT-25','DD-MON-RR'), 200.63, 200.9, 200.45, 200.5, 1939285, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-OCT-25','DD-MON-RR'), 200.66, 200.9, 200.53, 200.84, 3406108, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-OCT-25','DD-MON-RR'), 200.65, 200.76, 200.49, 200.62, 3357439, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-OCT-25','DD-MON-RR'), 200.46, 200.87, 200.31, 200.75, 3836583, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-OCT-25','DD-MON-RR'), 200.51, 200.705, 200.14, 200.55, 2619994, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-OCT-25','DD-MON-RR'), 200.545, 200.71, 200.4, 200.59, 2322808, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-OCT-25','DD-MON-RR'), 200.54, 200.745, 200.13, 200.3, 4512065, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-OCT-25','DD-MON-RR'), 200.75, 201.15, 200.245, 200.35, 2631726, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-OCT-25','DD-MON-RR'), 200.31, 201.11, 200.29, 200.75, 3807297, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-OCT-25','DD-MON-RR'), 200.11, 200.78, 200.035, 200.2, 3145850, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-OCT-25','DD-MON-RR'), 200.05, 200.62, 200.05, 200.29, 2431568, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-OCT-25','DD-MON-RR'), 200.04, 200.39, 199.8, 200.02, 3524147, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-OCT-25','DD-MON-RR'), 200, 200.255, 199.81, 200.05, 3618268, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-OCT-25','DD-MON-RR'), 200.34, 200.48, 200, 200.01, 3883181, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-OCT-25','DD-MON-RR'), 200.4, 200.6, 200, 200.02, 3385236, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-OCT-25','DD-MON-RR'), 200.67, 200.85, 200.38, 200.46, 5540972, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-OCT-25','DD-MON-RR'), 200.91, 201.25, 200.55, 200.69, 3672125, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('01-OCT-25','DD-MON-RR'), 201.52, 201.6, 200.8, 201, 5497447, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-SEP-25','DD-MON-RR'), 201.52, 202.31, 201.4, 201.63, 3764653, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-SEP-25','DD-MON-RR'), 201.75, 202.15, 201.3, 201.7, 8930135, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-SEP-25','DD-MON-RR'), 203.495, 203.75, 201.72, 202.05, 22698539, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-SEP-25','DD-MON-RR'), 173, 197.33, 170.08, 193.35, 14485678, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-SEP-25','DD-MON-RR'), 168.12, 169.1934, 167.79, 168.32, 1944289, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-SEP-25','DD-MON-RR'), 174.12, 174.9621, 166.1, 167.35, 3099094, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-SEP-25','DD-MON-RR'), 173.61, 175.26, 173.22, 174.07, 2158910, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-SEP-25','DD-MON-RR'), 173.69, 173.79, 171.72, 173.42, 2842923, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-SEP-25','DD-MON-RR'), 172.85, 174.69, 171.19, 173.09, 8449842, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-SEP-25','DD-MON-RR'), 172.93, 174.79, 171.8801, 173.17, 2354764, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-SEP-25','DD-MON-RR'), 172.22, 174.24, 170.51, 173.59, 1883700, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-SEP-25','DD-MON-RR'), 171.93, 175.56, 171.01, 172.08, 3189333, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-SEP-25','DD-MON-RR'), 171.52, 172.6875, 170.73, 171.765, 2042714, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-SEP-25','DD-MON-RR'), 169.59, 173.14, 169, 172.38, 1996395, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-SEP-25','DD-MON-RR'), 171.09, 171.27, 168.53, 169.89, 2411062, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-SEP-25','DD-MON-RR'), 165.81, 170.35, 164.5, 170.27, 2832031, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-SEP-25','DD-MON-RR'), 168.32, 168.32, 165.96, 166.04, 2058823, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-SEP-25','DD-MON-RR'), 169.44, 170.125, 167.18, 168.06, 1691197, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-SEP-25','DD-MON-RR'), 168.84, 169.32, 166.775, 168.62, 2205558, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-SEP-25','DD-MON-RR'), 168.17, 168.29, 165.53, 168.03, 3410993, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('02-SEP-25','DD-MON-RR'), 170.96, 171.96, 167.5, 167.86, 2748264, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('01-SEP-25','DD-MON-RR'), 170, 173.26, 169.7975, 171.45, 2359233, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-AUG-25','DD-MON-RR'), 171.23, 172.54, 170.67, 171.95, 2090029, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-AUG-25','DD-MON-RR'), 172.36, 173.75, 169.0101, 170.99, 2628473, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('26-AUG-25','DD-MON-RR'), 172.61, 173.7145, 171.72, 172.6, 2099966, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('25-AUG-25','DD-MON-RR'), 172.03, 173.25, 171.19, 172.23, 2594407, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-AUG-25','DD-MON-RR'), 171.61, 173.55, 170.99, 172.76, 1928758, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-AUG-25','DD-MON-RR'), 172.43, 173.11, 170.19, 171.4, 1707317, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-AUG-25','DD-MON-RR'), 170.71, 171.75, 170.02, 171.55, 1655959, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('19-AUG-25','DD-MON-RR'), 170.69, 172.49, 170, 171.33, 2289881, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('18-AUG-25','DD-MON-RR'), 168.66, 171.09, 167.445, 170.68, 2413522, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-AUG-25','DD-MON-RR'), 172.33, 173.41, 168.08, 169.16, 3600169, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-AUG-25','DD-MON-RR'), 179.12, 179.12, 172.94, 174.67, 3428841, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-AUG-25','DD-MON-RR'), 177.81, 180.9, 177.38, 179.01, 3751072, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('12-AUG-25','DD-MON-RR'), 177.79, 179.84, 177, 178.4, 3571362, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('11-AUG-25','DD-MON-RR'), 176.3, 178.8, 174.39, 177.91, 3792689, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-AUG-25','DD-MON-RR'), 170.565, 176.62, 170.1, 176.11, 6125187, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('07-AUG-25','DD-MON-RR'), 163.49, 167.76, 163.25, 167.64, 4591323, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('06-AUG-25','DD-MON-RR'), 164.25, 164.345, 161.15, 162.75, 2856554, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('05-AUG-25','DD-MON-RR'), 161.3, 163.07, 159.59, 163, 2597901, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('04-AUG-25','DD-MON-RR'), 161.7, 161.89, 159.1, 160.99, 2933262, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('03-AUG-25','DD-MON-RR'), 157.715, 160.32, 156.37, 159.77, 2745280, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('31-JUL-25','DD-MON-RR'), 152.76, 157.75, 151.5, 157.08, 4396992, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('30-JUL-25','DD-MON-RR'), 155.28, 156.19, 152.195, 152.49, 3640962, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('29-JUL-25','DD-MON-RR'), 151.895, 159.3699, 150.87, 156.26, 6044480, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('28-JUL-25','DD-MON-RR'), 152.41, 153.29, 146.97, 147.79, 3172230, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('27-JUL-25','DD-MON-RR'), 151, 152.88, 150.97, 151.99, 2991350, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('24-JUL-25','DD-MON-RR'), 152.96, 153.21, 151.48, 151.68, 1450558, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('23-JUL-25','DD-MON-RR'), 152.89, 153.97, 152, 152.64, 2482517, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('22-JUL-25','DD-MON-RR'), 156.62, 156.9, 153.29, 153.73, 2586509, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('21-JUL-25','DD-MON-RR'), 154.8, 158.65, 154.46, 157.02, 3204556, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('20-JUL-25','DD-MON-RR'), 150.3, 153.59, 149.785, 153.39, 2758440, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('17-JUL-25','DD-MON-RR'), 150.29, 151.92, 149.36, 150.11, 3850801, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('16-JUL-25','DD-MON-RR'), 149, 150.34, 148.56, 149.83, 1828454, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('15-JUL-25','DD-MON-RR'), 147.83, 150.09, 147.83, 149.35, 1889635, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('14-JUL-25','DD-MON-RR'), 148.6, 149.26, 146.97, 148.74, 2075983, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('13-JUL-25','DD-MON-RR'), 149.1, 150.29, 148.01, 148.83, 2857100, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('10-JUL-25','DD-MON-RR'), 151.14, 151.335, 148.37, 148.69, 1840444, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('09-JUL-25','DD-MON-RR'), 151.88, 152.91, 150.92, 151.3, 1613126, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-JUL-25','DD-MON-RR'), 153.11, 153.11, 151.31, 152.68, 1845138, 'EA');
+INSERT INTO PriceHistory (timestamp, openPrice, highPrice, lowPrice, closePrice, volume, ticker)
+VALUES (TO_DATE('08-JUL-24','DD-MON-RR'), 153.11, 153.11, 151.31, 152.68, 1845138, 'EA');
+
 INSERT INTO Users
 VALUES ('a@example.com', 'Technology', 'NASDAQ', 1);
 INSERT INTO Users
