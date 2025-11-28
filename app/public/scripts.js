@@ -555,6 +555,7 @@ async function handleDeleteUser(e) {
         msg.innerText = "Successfully deleted!";
         await new Promise(resolve => setTimeout(resolve, 1500));
         resetSettingPopup();
+        clearStockSelection();
         await refreshMenu();
     } else {
         msg.innerText = "Error deleting user";
@@ -629,6 +630,7 @@ async function renderHoldOnSelect() {
         const responseData = await response.json();
         responseData.exist ? btn.textContent = "Unhold" : btn.textContent = "Hold";
     } else if (username === "") {
+        btn.textContent = "Hold";
         btn.disabled = true;
         btn.style.cursor = "not-allowed";
         document.getElementById("holdButton").dataset.tooltip = "Please login";
@@ -1034,7 +1036,7 @@ function addHoldingDurationFilterListener() {
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    //document.getElementById("initDB").addEventListener("click", initDB);
+    // document.getElementById("initDB").addEventListener("click", initDB);
     populateMenu({preferredIndustry: "", display: false});
     addSearchBarListener();
     addSettingListener();
