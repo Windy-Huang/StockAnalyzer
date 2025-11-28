@@ -16,55 +16,6 @@ router.get('/check-db-connection', async (req, res) => {
     }
 });
 
-router.get('/demotable', async (req, res) => {
-    const tableContent = await appService.fetchDemotableFromDb();
-    res.json({data: tableContent});
-});
-
-router.post("/initiate-demotable", async (req, res) => {
-    const initiateResult = await appService.initiateDemotable();
-    if (initiateResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.post("/insert-demotable", async (req, res) => {
-    const { id, name } = req.body;
-    const insertResult = await appService.insertDemotable(id, name);
-    if (insertResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.post("/update-name-demotable", async (req, res) => {
-    const { oldName, newName } = req.body;
-    const updateResult = await appService.updateNameDemotable(oldName, newName);
-    if (updateResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.get('/count-demotable', async (req, res) => {
-    const tableCount = await appService.countDemotable();
-    if (tableCount >= 0) {
-        res.json({ 
-            success: true,  
-            count: tableCount
-        });
-    } else {
-        res.status(500).json({ 
-            success: false, 
-            count: tableCount
-        });
-    }
-});
-
 router.post("/initiate-db", async (req, res) => {
     try {
         const initiateResult = await appService.initiateDB();
@@ -84,7 +35,7 @@ router.post("/insert-db", async (req, res) => {
     if (!rejected) {
         rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 2);
         if (!rejected) {
-            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 2);
+            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 1);
             if (!rejected) res.json({ success: true });
         }
     }
@@ -95,6 +46,8 @@ router.post("/insert-db", async (req, res) => {
 // 404 means provided accessNum is invalid
 // 422 means error in parsing, requires user assistance
 // 500 means error in DB insertion
+// 501 means error in DB insertion - PK already exist
+// 502 means error in DB insertion - FK does not exist
 router.post("/insert-report", async (req, res) => {
     const { accessNum } = req.body;
     console.log(accessNum);
@@ -103,11 +56,18 @@ router.post("/insert-report", async (req, res) => {
         if (parsedReport.size < 9) {
             res.status(422).json({ success: false, report: Object.fromEntries(parsedReport) });
         } else {
-            const result = await appService.insertReportPerCompany(parsedReport);
-            if (result) {
+            try {
+                await appService.insertReportPerCompany(parsedReport);
                 res.json({ success: true });
-            } else {
-                res.status(500).json({ success: false });
+            } catch (e) {
+                console.error("Insert failed:", e);
+                if (e.errorNum === 1) {
+                    res.status(501).json({ success: false });
+                } else if (e.errorNum === 2291) {
+                    res.status(502).json({ success: false });
+                } else {
+                    res.status(500).json({ success: false });
+                }
             }
         }
     } else {
@@ -117,8 +77,19 @@ router.post("/insert-report", async (req, res) => {
 
 router.post("/insert-report-parsed", async (req, res) => {
     const { report } = req.body;
-    const result = await appService.insertReportPerCompany(parsedReport);
-    res.json({ success: result });
+    try {
+        await appService.insertReportPerCompany(report);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Insert failed:", e);
+        if (e.errorNum === 1) {
+            res.status(501).json({ success: false });
+        } else if (e.errorNum === 2291) {
+            res.status(502).json({ success: false });
+        } else {
+            res.status(500).json({ success: false });
+        }
+    }
 });
 
 // Specify industry: /menu?industry=tech
@@ -134,7 +105,6 @@ router.get('/menu', async (req, res) => {
 
 router.post("/query", async (req, res) => {
     const { where } = req.body;
-    console.log(where);
     res.json({data: await appService.filterStock(where)});
 });
 
@@ -155,6 +125,11 @@ router.put('/user', async (req, res) => {
     } else {
         res.status(500).json({ success: false });
     }
+});
+
+router.delete('/user', async (req, res) => {
+    const { email } = req.body;
+    res.json({success: await appService.delUser(email)});
 });
 
 router.get('/holding', async (req, res) => {
@@ -232,6 +207,12 @@ router.get('/user-held-stocks/:email/duration/:duration', async (req, res) => {
         console.error('Error fetching user held stocks by duration:', error);
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+router.post('/price-history', async (req, res) => {
+    const { ticker, fields } = req.body;
+    const result = await appService.fetchRecentPriceHistory(ticker, fields);
+    res.json({ data: result });
 });
 
 module.exports = router;

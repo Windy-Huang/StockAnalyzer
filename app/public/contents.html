@@ -77,9 +77,10 @@
 
                 <div id="settingMessage"></div>
 
-                <div>
+                <div class="button-row">
                     <button type="button" id="settingCancel">Cancel</button>
                     <button type="submit" id="settingSubmit">Submit</button>
+                    <button type="delete" id="settingDelete" hidden>Delete</button>
                 </div>
             </form>
         </div>
@@ -120,6 +121,7 @@
             <div class="form-row">
                 <h2 style="margin-bottom: 0px">Insert Report</h2>
             </div>
+            <p id="unit"></p>
 
             <div class="form-row" id="accessNumRow">
                 <label for="accessNum">Report access number</label>
@@ -128,7 +130,7 @@
 
             <div id="errorMessage"></div>
 
-            <div>
+            <div class="button-row">
                 <button type="button" id="reportCancel">Cancel</button>
                 <button type="submit" id="reportSubmit">Submit</button>
             </div>

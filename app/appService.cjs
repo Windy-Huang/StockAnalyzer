@@ -99,72 +99,6 @@ async function testOracleConnection() {
     });
 }
 
-async function fetchDemotableFromDb() {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute('SELECT * FROM DEMOTABLE');
-        return result.rows;
-    }).catch(() => {
-        return [];
-    });
-}
-
-async function initiateDemotable() {
-    return await withOracleDB(async (connection) => {
-        try {
-            await connection.execute(`DROP TABLE DEMOTABLE`);
-        } catch(err) {
-            console.log('Table might not exist, proceeding to create...');
-        }
-
-        const result = await connection.execute(`
-            CREATE TABLE DEMOTABLE (
-                id NUMBER PRIMARY KEY,
-                name VARCHAR2(20)
-            )
-        `);
-        return true;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function insertDemotable(id, name) {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute(
-            `INSERT INTO DEMOTABLE (id, name) VALUES (:id, :name)`,
-            [id, name],
-            { autoCommit: true }
-        );
-
-        return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function updateNameDemotable(oldName, newName) {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute(
-            `UPDATE DEMOTABLE SET name=:newName where name=:oldName`,
-            [newName, oldName],
-            { autoCommit: true }
-        );
-
-        return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
-        return false;
-    });
-}
-
-async function countDemotable() {
-    return await withOracleDB(async (connection) => {
-        const result = await connection.execute('SELECT Count(*) FROM DEMOTABLE');
-        return result.rows[0][0];
-    }).catch(() => {
-        return -1;
-    });
-}
-
 async function initiateDB() {
     return await withOracleDB(async (connection) => {
         try {
@@ -254,7 +188,6 @@ async function initiateDB() {
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
             )`);
-        console.log("db initiate finished");
         return true;
     }).catch((err) => {
         console.error("InitiateDB failed: ", err);
@@ -295,7 +228,7 @@ async function insertDBperCompany(data) {
 
 async function insertReportPerCompany(obj) {
     return await withOracleDB(async (connection) => {
-        const data = Object.fromEntries(obj);
+        const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
         await connection.execute(`
             INSERT INTO DebtEquity
             VALUES (:1, :2, :3)`,
@@ -310,9 +243,6 @@ async function insertReportPerCompany(obj) {
         );
         console.log("insert report finished " + data["ticker"]);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch((err) => {
-        console.error("Insert failed : ", data["ticker"], err);
-        return false;
     });
 }
 
@@ -345,7 +275,6 @@ async function insertPricePerStock(obj) {
 async function fetchSettingDropdown(type) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT ${type}, COUNT(*) FROM Stock GROUP BY ${type}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -394,10 +323,23 @@ async function updateUser(email, industry, exchange, rec) {
     });
 }
 
+async function delUser(email) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            DELETE FROM Users
+            WHERE email = :1`,
+            [email],
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
 async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT * FROM Stock ORDER BY ticker');
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -407,7 +349,6 @@ async function fetchAllStock() {
 async function filterStock(where) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT * FROM Stock WHERE ${where}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -427,7 +368,6 @@ async function fetchPopularStock() {
                 (SELECT h1.email FROM Holds h1 WHERE h1.ticker = h.ticker)
             )
         `);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -439,19 +379,18 @@ async function fetchPopularStock() {
 async function fetchLeastPopularStock(industry) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
-            SELECT h.ticker
-            FROM Holds h, Stock s
-            WHERE h.ticker = s.ticker AND s.industry = :1
-            GROUP BY h.ticker
+            SELECT s.ticker
+            FROM Stock s LEFT JOIN Holds h ON h.ticker = s.ticker
+            WHERE s.industry = :1
+            GROUP BY s.ticker
             HAVING COUNT(*) <= ALL (
                 SELECT COUNT(*)
-                FROM Holds h1, Stock s1
-                WHERE h1.ticker = s1.ticker AND s1.industry = :1
-                GROUP BY h1.ticker
+                FROM Stock s1 LEFT JOIN Holds h1 ON h1.ticker = s1.ticker
+                WHERE s1.industry = :1
+                GROUP BY s1.ticker
             )`,
             [industry]
         );
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -475,7 +414,7 @@ async function verifyHolding(email, ticker) {
 async function addHolding(email, ticker) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
-            INSERT INTO Holds (email, ticker, holdTime)
+            INSERT INTO Holds
             VALUES (:1, :2, SYSDATE)`,
             [email, ticker],
             { autoCommit: true }
@@ -655,23 +594,36 @@ async function getUserHeldStocksByDuration(email, durationFilter) {
     });
 }
 
+async function fetchRecentPriceHistory(ticker, fields) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            SELECT ${fields}
+            FROM PriceHistory
+            WHERE ticker = :1
+            ORDER BY timestamp DESC
+            FETCH FIRST 1 ROW ONLY`,
+            [ticker]
+        );
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
     poolReady,
     withOracleDB,
     testOracleConnection,
-    fetchDemotableFromDb,
-    initiateDemotable,
-    insertDemotable,
-    updateNameDemotable,
-    countDemotable,
     initiateDB,
     insertDBperCompany,
     insertReportPerCompany,
     insertPricePerStock,
     fetchUser,
     updateUser,
+    delUser,
     fetchSettingDropdown,
     fetchAllStock,
     filterStock,
@@ -684,5 +636,6 @@ module.exports = {
     getPriceHistory,
     getAllStocks,
     getStocksByHoldingDuration,
-    getUserHeldStocksByDuration
+    getUserHeldStocksByDuration,
+    fetchRecentPriceHistory
 };
