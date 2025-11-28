@@ -52,10 +52,14 @@ async function handleStockSelection(symbol) {
     selectedTicker = symbol[0];
     selectedTickerFull = symbol;
 
-    // Hide the duration filter and show the back button
+    // Hide the duration filter and show the back button only if user is logged in
     const portfolioControls = document.getElementById("portfolioControls");
     if (portfolioControls) {
-        portfolioControls.innerHTML = '<button id="clearStockSelection" style="padding: 8px 20px; font-size: 14px;">Back to Portfolio</button>';
+        if (currentUserEmail) {
+            portfolioControls.innerHTML = '<button id="clearStockSelection" style="padding: 8px 20px; font-size: 14px;">Back to Portfolio</button>';
+        } else {
+            portfolioControls.innerHTML = '';
+        }
     }
 
     const container = document.getElementById("selectedStock");
@@ -73,7 +77,7 @@ async function handleStockSelection(symbol) {
         updateChartForStock(selectedTicker);
     }
 
-    // Add listener for clear button
+    // Add listener for clear button (only exists if user is logged in)
     const clearBtn = document.getElementById("clearStockSelection");
     if (clearBtn) {
         clearBtn.addEventListener("click", clearStockSelection);
@@ -113,9 +117,9 @@ function clearStockSelection() {
     container.innerHTML = '';
     document.getElementById("stockRelatedOperation").hidden = true;
 
-    // Show the duration filter again and hide the back button
+    // Show the duration filter again only if user is logged in
     const portfolioControls = document.getElementById("portfolioControls");
-    if (portfolioControls) {
+    if (portfolioControls && currentUserEmail) {
         portfolioControls.innerHTML = `
             <div id="holdingDurationFilter">
                 <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
@@ -131,6 +135,9 @@ function clearStockSelection() {
 
         // Re-add the event listener for the newly created dropdown
         addHoldingDurationFilterListener();
+    } else if (portfolioControls) {
+        // Clear controls if user is not logged in
+        portfolioControls.innerHTML = '';
     }
 
     // Return to portfolio view (no filter initially)
