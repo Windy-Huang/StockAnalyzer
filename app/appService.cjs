@@ -188,7 +188,6 @@ async function initiateDB() {
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
             )`);
-        console.log("db initiate finished");
         return true;
     }).catch((err) => {
         console.error("InitiateDB failed: ", err);
@@ -276,7 +275,6 @@ async function insertPricePerStock(obj) {
 async function fetchSettingDropdown(type) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT ${type}, COUNT(*) FROM Stock GROUP BY ${type}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -342,7 +340,6 @@ async function delUser(email) {
 async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT * FROM Stock ORDER BY ticker');
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -352,7 +349,6 @@ async function fetchAllStock() {
 async function filterStock(where) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT * FROM Stock WHERE ${where}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -372,7 +368,6 @@ async function fetchPopularStock() {
                 (SELECT h1.email FROM Holds h1 WHERE h1.ticker = h.ticker)
             )
         `);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -396,7 +391,6 @@ async function fetchLeastPopularStock(industry) {
             )`,
             [industry]
         );
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];

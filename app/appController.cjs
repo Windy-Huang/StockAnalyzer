@@ -105,7 +105,6 @@ router.get('/menu', async (req, res) => {
 
 router.post("/query", async (req, res) => {
     const { where } = req.body;
-    console.log(where);
     res.json({data: await appService.filterStock(where)});
 });
 

@@ -24,16 +24,14 @@ async function checkDbConnection() {
 
 //////////////////////////// DB initialization from various API //////////////////////////////////////
 async function initDB() {
-    console.log("start");
     let response = await fetch("/initiate-db", {
         method: 'POST'
     });
     await response.json();
-    console.log("finished initiate");
     response = await fetch("/insert-db", {
         method: 'POST'
     });
-    console.log("finished insert");
+    console.log("Finish initiating database");
 }
 
 
@@ -66,6 +64,7 @@ async function handleStockSelection(symbol) {
     //////////////////////////// Render stock attributes here //////////////////////////////////////
     renderTitleRow(container);
     await renderStockDetail(container);
+    await renderHoldOnSelect();
 
     //////////////////////////// Calls render graph here //////////////////////////////////////
     // Update the graph to show this specific stock
@@ -219,7 +218,7 @@ async function updateStockPriceDetail(container) {
     });
     const responseData = await response.json();
 
-    if (response.ok) {
+    if (response.ok && responseData.data[0]) {
         for (let i = 0; i < renderedFields.length; i++) {
             renderedFields[i].textContent = responseData.data[0][i];
         }
@@ -254,7 +253,6 @@ async function populateMenu(option) {
             }
 
             btn.addEventListener("click", () => {
-                console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
                     parent.frames["contents"].handleStockSelection(symbol);
@@ -307,7 +305,6 @@ async function applyFilterList(attribute, text) {
             elem.textContent = symbol;
             elem.style = "width: 750px; text-align: left;";
             elem.addEventListener("click", () => {
-                console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
                     parent.frames["contents"].handleStockSelection(symbol);
@@ -428,7 +425,6 @@ async function loadSetting() {
     });
     const responseData = await response.json();
 
-    console.log(responseData.data);
     if (response.ok && responseData.data.length === 1) {
         result = responseData.data[0];
         document.getElementById("settingIndustry").value = result[1];
@@ -565,27 +561,6 @@ function addHoldListener() {
     const btn = document.getElementById("holdButton");
     if (!btn) return;
 
-    document.addEventListener('click', async () => {
-        if (selectedTicker) btn.hidden = false;
-        if (username && selectedTicker) {
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
-            document.getElementById("holdButton").dataset.tooltip = "";
-
-            const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
-            const responseData = await response.json();
-            if (responseData.exist) {
-                btn.textContent = "Unhold";
-            } else {
-                btn.textContent = "Hold";
-            }
-        } else {
-            btn.disabled = true;
-            btn.style.cursor = "not-allowed";
-            document.getElementById("holdButton").dataset.tooltip = "Please login";
-        }
-    });
-
     btn.addEventListener('click', async() => {
         const action = btn.textContent === "Hold" ? "added to" : "removed from";
         const response = await fetch('/holding', {
@@ -599,6 +574,7 @@ function addHoldListener() {
                 add: btn.textContent === "Hold"
             })
         });
+        btn.hidden = true;
         await refreshMenu();
 
         // Navigate back to portfolio to see updated holdings in the overlaid graph
@@ -615,6 +591,25 @@ function addHoldListener() {
             }, 3000);
         }
     });
+}
+
+async function renderHoldOnSelect() {
+    const btn = document.getElementById("holdButton");
+    btn.hidden = false;
+
+    if (username) {
+        btn.disabled = false;
+        btn.style.cursor = "pointer";
+        document.getElementById("holdButton").dataset.tooltip = "";
+
+        const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
+        const responseData = await response.json();
+        responseData.exist ? btn.textContent = "Unhold" : btn.textContent = "Hold";
+    } else if (username === "") {
+        btn.disabled = true;
+        btn.style.cursor = "not-allowed";
+        document.getElementById("holdButton").dataset.tooltip = "Please login";
+    }
 }
 
 
@@ -806,15 +801,12 @@ async function updateChartForPortfolio(durationFilter = null) {
         let response, data;
         if (durationFilter) {
             const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}/duration/${durationFilter}`;
-           // console.log("Fetching filtered stocks from:", url);
             response = await fetch(url);
         } else {
             const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}`;
-            // console.log("Fetching all stocks from:", url);
             response = await fetch(url);
         }
         data = await response.json();
-        // console.log("Received data:", data);
 
         if (!data.success || data.data.length === 0) {
             const filterText = durationFilter ? ` matching the selected duration filter` : '';
@@ -1003,13 +995,6 @@ function addHoldingDurationFilterListener() {
 
     durationSelect.addEventListener("change", () => {
         const duration = durationSelect.value;
-
-        /*
-        console.log("Duration filter changed to:", duration);
-        console.log("currentUserEmail:", currentUserEmail);
-        console.log("selectedStock:", selectedStock);
-        console.log("selectedTicker:", selectedTicker);
-        */
        
         // Only update chart if user is logged in and not viewing a specific stock
         if (currentUserEmail && !selectedTicker) {
