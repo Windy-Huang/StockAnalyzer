@@ -83,7 +83,7 @@ body {
 
 .popup {
     position: relative;
-    transform: translate(90%, 4%);
+    transform: translate(100%, 4%);
     z-index: 100;
 
     font-family: 'Inter', sans-serif;
@@ -113,6 +113,16 @@ body {
 .popup .form-row span {
     margin-left: 8px;
     min-width: 120px;
+}
+
+.popup .button-row {
+    display: flex;
+    width: 520px;
+}
+
+.popup .button-row button {
+    flex: 1;
+    width: auto;
 }
 
 .imgcenter {

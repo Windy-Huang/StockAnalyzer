@@ -24,16 +24,14 @@ async function checkDbConnection() {
 
 //////////////////////////// DB initialization from various API //////////////////////////////////////
 async function initDB() {
-    console.log("start");
     let response = await fetch("/initiate-db", {
         method: 'POST'
     });
     await response.json();
-    console.log("finished initiate");
     response = await fetch("/insert-db", {
         method: 'POST'
     });
-    console.log("finished insert");
+    console.log("Finish initiating database");
 }
 
 
@@ -53,12 +51,20 @@ let selectedTickerFull = [];
 async function handleStockSelection(symbol) {
     selectedTicker = symbol[0];
     selectedTickerFull = symbol;
+
+    // Hide the duration filter and show the back button
+    const portfolioControls = document.getElementById("portfolioControls");
+    if (portfolioControls) {
+        portfolioControls.innerHTML = '<button id="clearStockSelection" style="padding: 8px 20px; font-size: 14px;">Back to Portfolio</button>';
+    }
+
     const container = document.getElementById("selectedStock");
-    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: block; margin: 10px;">Back to Portfolio</button>';
+    container.innerHTML = '';
 
     //////////////////////////// Render stock attributes here //////////////////////////////////////
     renderTitleRow(container);
-    renderStockDetail(container);
+    await renderStockDetail(container);
+    await renderHoldOnSelect();
 
     //////////////////////////// Calls render graph here //////////////////////////////////////
     // Update the graph to show this specific stock
@@ -101,10 +107,32 @@ function clearStockSelection() {
     selectedTicker = "";
     selectedTickerFull = [];
     selectedStock = null;
-    const container = document.getElementById("selectedStock");
-    container.innerHTML = '<button id="clearStockSelection" style="width: 180px; display: none; margin: 10px;">Back to Portfolio</button>';
 
-    // Return to portfolio view
+    // Clear stock details
+    const container = document.getElementById("selectedStock");
+    container.innerHTML = '';
+
+    // Show the duration filter again and hide the back button
+    const portfolioControls = document.getElementById("portfolioControls");
+    if (portfolioControls) {
+        portfolioControls.innerHTML = `
+            <div id="holdingDurationFilter">
+                <label for="durationSelect" style="margin-right: 10px; font-weight: bold;">Filter by holding duration:</label>
+                <select id="durationSelect" style="padding: 5px 10px;">
+                    <option value="" selected>All holdings (no filter)</option>
+                    <option value="day">Held at least 1 day</option>
+                    <option value="week">Held at least 1 week</option>
+                    <option value="month">Held at least 1 month</option>
+                    <option value="year">Held at least 1 year</option>
+                </select>
+            </div>
+        `;
+
+        // Re-add the event listener for the newly created dropdown
+        addHoldingDurationFilterListener();
+    }
+
+    // Return to portfolio view (no filter initially)
     if (currentUserEmail) {
         updateChartForPortfolio();
     }
@@ -129,7 +157,7 @@ function renderTitleRow(container) {
     titleRow.style.gap = "10px";
 
     const header = document.createElement("h2");
-    header.textContent = `Ticker: ${selectedTicker}`;
+    header.textContent = `${selectedTickerFull[1]} (${selectedTicker})`;
     header.style.margin = "8px";
     titleRow.appendChild(header);
 
@@ -143,16 +171,17 @@ function renderTitleRow(container) {
     container.appendChild(titleRow);
 }
 
-function renderStockDetail(container) {
-    const attributes = [
-        { label: "Company Name: ", value: selectedTickerFull[1] },
-        { label: "Country: ", value: selectedTickerFull[2] },
-        { label: "Industry: ", value: selectedTickerFull[3] },
-        { label: "Exchange: ", value: selectedTickerFull[4] },
-        { label: "Market Capital: $", value: selectedTickerFull[5] }
+async function renderStockDetail(container) {
+    const metaData = [
+        { key: "timestamp", label: "Last updated: " },
+        { key: "openPrice", label: "Open price: $" },
+        { key: "highPrice", label: "High price: $" },
+        { key: "lowPrice", label: "Low price: $" },
+        { key: "closePrice", label: "Close price: $" },
+        { key: "volume", label: "Volume: " }
     ];
 
-    attributes.forEach(row => {
+    metaData.forEach(row => {
         const rowDiv = document.createElement("div");
         rowDiv.style.display = "flex";
         rowDiv.style.alignItems = "center";
@@ -165,7 +194,7 @@ function renderStockDetail(container) {
         rowDiv.appendChild(labelSpan);
 
         const valueSpan = document.createElement("span");
-        valueSpan.textContent = row.value;
+        valueSpan.dataset.field = row.key;
         rowDiv.appendChild(valueSpan);
 
         const spacer = document.createElement("span");
@@ -177,13 +206,44 @@ function renderStockDetail(container) {
         closeBtn.textContent = "X";
         closeBtn.style.width = "20px";
         closeBtn.style.padding = "0px";
-        closeBtn.addEventListener("click", () => {
+        closeBtn.addEventListener("click", async () => {
             rowDiv.remove();
+            await updateStockPriceDetail(container);
         });
         rowDiv.appendChild(closeBtn);
 
         container.appendChild(rowDiv);
     });
+
+    await updateStockPriceDetail(container);
+}
+
+async function updateStockPriceDetail(container) {
+    let fields = "";
+    const renderedFields = container.querySelectorAll("[data-field]");
+    renderedFields.forEach(span => {
+        const key = span.dataset.field;
+        fields = fields + key + ", ";
+    });
+    fields = fields.replace(/, $/, '');
+
+    const response = await fetch('/price-history', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            ticker: selectedTicker,
+            fields: fields
+        })
+    });
+    const responseData = await response.json();
+
+    if (response.ok && responseData.data[0]) {
+        for (let i = 0; i < renderedFields.length; i++) {
+            renderedFields[i].textContent = responseData.data[0][i];
+        }
+    }
 }
 
 
@@ -214,7 +274,6 @@ async function populateMenu(option) {
             }
 
             btn.addEventListener("click", () => {
-                console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
                     parent.frames["contents"].handleStockSelection(symbol);
@@ -267,7 +326,6 @@ async function applyFilterList(attribute, text) {
             elem.textContent = symbol;
             elem.style = "width: 750px; text-align: left;";
             elem.addEventListener("click", () => {
-                console.log("Clicked stock:", symbol);
                 if (parent && parent.frames && parent.frames["contents"] &&
                     typeof parent.frames["contents"].handleStockSelection === "function") {
                     parent.frames["contents"].handleStockSelection(symbol);
@@ -328,7 +386,8 @@ function addSettingListener() {
     const login = document.getElementById("userSetting");
     const cancel = document.getElementById("settingCancel");
     const submit = document.getElementById("settingSubmit");
-    if (!login || !cancel || !submit) return;
+    const del = document.getElementById("settingDelete");
+    if (!login || !cancel || !submit || !del) return;
 
     login.addEventListener("click", () => {
         document.getElementById("userSettingPopup").style.display = "flex";
@@ -341,6 +400,10 @@ function addSettingListener() {
     submit.addEventListener("click", async (e) => {
         await handleSettingUpdate(e);
     });
+
+    del.addEventListener("click", async (e) => {
+        await handleDeleteUser(e);
+    });
 }
 
 let username = "";
@@ -350,7 +413,7 @@ async function handleSettingUpdate(e) {
 
     if (username === "") { // Not logged in, insert new / load existing user
         const email = document.getElementById("settingEmail").value.trim();
-        if (email.length < 7 || !email.includes('@')) {
+        if (email.length < 7 || !email.includes('@') || email.includes(' ')) {
             document.getElementById("settingMessage").innerText = "Invalid email";
             return;
         }
@@ -369,6 +432,7 @@ async function loadSetting() {
     document.getElementById("settingIndustry").parentElement.style.display = "flex";
     document.getElementById("settingExchange").parentElement.style.display = "flex";
     document.getElementById("settingRec").parentElement.style.display = "flex";
+    document.getElementById("settingDelete").hidden = false;
     await loadSettingDropdown();
 
     const response = await fetch('/user', {
@@ -382,7 +446,6 @@ async function loadSetting() {
     });
     const responseData = await response.json();
 
-    console.log(responseData.data);
     if (response.ok && responseData.data.length === 1) {
         result = responseData.data[0];
         document.getElementById("settingIndustry").value = result[1];
@@ -407,6 +470,11 @@ async function loadSettingDropdown() {
         const selectEx = document.getElementById("settingExchange");
         const exLabel = document.getElementById("exchangeTickers");
 
+        selectInd.innerHTML = '<option value="" selected> </option>';
+        selectEx.innerHTML = '<option value="" selected> </option>';
+        indLabel.textContent = "";
+        exLabel.textContent = "";
+
         responseData.industry.forEach(([industry, count]) => {
             const opt = document.createElement("option");
             opt.value = industry;
@@ -414,13 +482,6 @@ async function loadSettingDropdown() {
             opt.dataset.count = count;
             selectInd.appendChild(opt);
         });
-        selectInd.addEventListener("change", () => {
-            indLabel.textContent = "";
-            if (selectInd.value) {
-                indLabel.textContent = `${selectInd.options[selectInd.selectedIndex].dataset.count} tickers`;
-            }
-        });
-
         responseData.exchange.forEach(([exchange, count]) => {
             const opt = document.createElement("option");
             opt.value = exchange;
@@ -428,12 +489,21 @@ async function loadSettingDropdown() {
             opt.dataset.count = count;
             selectEx.appendChild(opt);
         });
-        selectEx.addEventListener("change", () => {
+
+        selectInd.onchange = () => {
+            indLabel.textContent = "";
+            if (selectInd.value) {
+                const option = selectInd.options[selectInd.selectedIndex];
+                indLabel.textContent = `${option.dataset.count} tickers`;
+            }
+        };
+        selectEx.onchange = () => {
             exLabel.textContent = "";
             if (selectEx.value) {
-                exLabel.textContent = `${selectEx.options[selectEx.selectedIndex].dataset.count} tickers`;
+                const option = selectEx.options[selectEx.selectedIndex];
+                exLabel.textContent = `${option.dataset.count} tickers`;
             }
-        });
+        };
     }
 }
 
@@ -453,6 +523,9 @@ async function updateSetting() {
 
     const responseData = await response.json();
     if (responseData.success) {
+        document.getElementById("settingMessage").innerText = "Update successful!";
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         document.getElementById("settingMessage").innerText = "";
         document.getElementById("userSettingPopup").style.display = "none";
         await refreshMenu();
@@ -461,30 +534,56 @@ async function updateSetting() {
     }
 }
 
+async function handleDeleteUser(e) {
+    e.preventDefault();
+    const msg = document.getElementById("settingMessage");
+
+    const response = await fetch('/user', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: username
+        })
+    });
+    const responseData = await response.json();
+
+    if (response.ok && responseData.success) {
+        msg.innerText = "Successfully deleted!";
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        resetSettingPopup();
+        await refreshMenu();
+    } else {
+        msg.innerText = "Error deleting user";
+    }
+}
+
+function resetSettingPopup() {
+    document.getElementById("settingEmail").parentElement.style.display = "flex";
+    document.getElementById("settingEmail").value = "";
+    document.getElementById("settingIndustry").parentElement.style.display = "none";
+    document.getElementById("settingExchange").parentElement.style.display = "none";
+    document.getElementById("settingRec").parentElement.style.display = "none";
+    document.getElementById("settingRec").checked = false;
+    document.getElementById("settingMessage").innerText = "";
+    document.getElementById("settingDelete").hidden = true;
+
+    username = "";
+    document.getElementById("userSetting").innerText = "Login";
+    document.getElementById("userSettingPopup").style.display = "none";
+
+    parent.frames["contents"].document.dispatchEvent(new Event("click"));
+}
+
 
 //////////////////////////// Stock holding logic //////////////////////////////////////
 function addHoldListener() {
     const btn = document.getElementById("holdButton");
     if (!btn) return;
 
-    document.addEventListener('click', async () => {
-        if (selectedTicker) btn.hidden = false;
-        if (username && selectedTicker) {
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
-            document.getElementById("holdButton").dataset.tooltip = "";
-
-            const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
-            const responseData = await response.json();
-            if (responseData.exist) {
-                btn.textContent = "Unhold";
-            } else {
-                btn.textContent = "Hold";
-            }
-       }
-    });
-
     btn.addEventListener('click', async() => {
+        const action = btn.textContent === "Hold" ? "added to" : "removed from";
         const response = await fetch('/holding', {
             method: 'PUT',
             headers: {
@@ -496,14 +595,42 @@ function addHoldListener() {
                 add: btn.textContent === "Hold"
             })
         });
+        btn.hidden = true;
         await refreshMenu();
-        handleStockSelection(selectedTickerFull);
 
-        // If no stock is selected, refresh the portfolio graph
-        if (!selectedTicker && currentUserEmail) {
-            updateChartForPortfolio();
+        // Navigate back to portfolio to see updated holdings in the overlaid graph
+        clearStockSelection();
+
+        // Show a brief confirmation message
+        const chartMessage = document.getElementById('chartMessage');
+        if (chartMessage) {
+            chartMessage.textContent = `${selectedTicker} ${action} your portfolio`;
+            setTimeout(() => {
+                if (chartMessage.textContent === `${selectedTicker} ${action} your portfolio`) {
+                    chartMessage.textContent = '';
+                }
+            }, 3000);
         }
     });
+}
+
+async function renderHoldOnSelect() {
+    const btn = document.getElementById("holdButton");
+    btn.hidden = false;
+
+    if (username) {
+        btn.disabled = false;
+        btn.style.cursor = "pointer";
+        document.getElementById("holdButton").dataset.tooltip = "";
+
+        const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
+        const responseData = await response.json();
+        responseData.exist ? btn.textContent = "Unhold" : btn.textContent = "Hold";
+    } else if (username === "") {
+        btn.disabled = true;
+        btn.style.cursor = "not-allowed";
+        document.getElementById("holdButton").dataset.tooltip = "Please login";
+    }
 }
 
 
@@ -536,11 +663,13 @@ function resetReportPopup() {
     const form = document.getElementById("insertReportForm");
     const accessNumRow = document.getElementById("accessNumRow");
     const error = document.getElementById("errorMessage");
+    const unit = document.getElementById("unit");
 
     form.reset();
     accessNumRow.style.display = "";
     form.querySelectorAll(".report-field-row").forEach(row => row.remove());
     error.textContent = "";
+    unit.textContent = "";
 }
 
 let parsed;
@@ -556,6 +685,9 @@ async function handleInsertReport(e) {
         const accessNum = accessInput.value.trim();
         if (!accessNum) {
             error.textContent = "Please enter an access number";
+            return;
+        } else if (!(/^[0-9-]+$/.test(accessNum))) {
+            error.textContent = "Invalid characters in access number";
             return;
         }
 
@@ -578,12 +710,21 @@ async function handleInsertReport(e) {
                 accessRow.style.display = "none";
                 parsed = responseData.report;
                 renderManualReportFields();
+            } else if (response.status === 501) {
+                error.textContent = "Report with this access number already exists";
+            } else if (response.status === 502) {
+                error.textContent = "The stock for this report is not in the database";
+            } else {
+                error.textContent = "Error inserting report";
             }
         } else {
+            error.innerText = "Insert successful!";
+            await new Promise(resolve => setTimeout(resolve, 1500));
             popup.style.display = "none";
         }
     } else { // Insert user parsed report
         validateReportFields();
+        if (Object.keys(parsed).length < 9) return;
 
         const response = await fetch('/insert-report-parsed', {
             method: 'POST',
@@ -597,10 +738,18 @@ async function handleInsertReport(e) {
         const responseData = await response.json();
 
         if (responseData.success) {
-            popup.style.display = "none";
+            error.innerText = "Insert successful!";
         } else {
-            error.textContent = "Error inserting into database";
+            if (response.status === 501) {
+                error.textContent = "Report with this access number already exists";
+            } else if (response.status === 502) {
+                error.textContent = "The stock for this report is not in the database";
+            } else {
+                error.textContent = "Error inserting report";
+            }
         }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        popup.style.display = "none";
     }
 }
 
@@ -608,10 +757,7 @@ function renderManualReportFields() {
     const form = document.getElementById("insertReportForm");
     const error = document.getElementById("errorMessage");
     const fields = ["revenue", "income", "eps", "liabilities", "equity"];
-
-    const unit = document.createElement("p");
-    unit.innerText = "(In units of million, except eps)";
-    form.insertBefore(unit, error);
+    document.getElementById("unit").textContent = "(In units of million, except eps)";
 
     for (const key of fields) {
         const row = document.createElement("div");
@@ -640,7 +786,6 @@ function validateReportFields() {
 
     rows.forEach(row => {
         const input = row.querySelector("input[type='text']");
-        console.log(input.name);
         const val = input.value.trim();
         if (!val) {
             error.textContent = "Please fill in all fields";
@@ -658,9 +803,10 @@ function validateReportFields() {
 //////////////////////////// Stock Graph Functions //////////////////////////////////////
 
 // Update chart to show portfolio (all held stocks)
-async function updateChartForPortfolio() {
+async function updateChartForPortfolio(durationFilter = null) {
     const chartMessage = document.getElementById('chartMessage');
     const chartTitle = document.getElementById('chartTitle');
+
 
     if (!currentUserEmail) {
         if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
@@ -672,13 +818,29 @@ async function updateChartForPortfolio() {
     }
 
     try {
-        // Get user's held stocks
-        const response = await fetch(`/user-held-stocks/${encodeURIComponent(currentUserEmail)}`);
-        const data = await response.json();
+        // Get user's held stocks - either filtered by duration or all
+        let response, data;
+        if (durationFilter) {
+            const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}/duration/${durationFilter}`;
+            response = await fetch(url);
+        } else {
+            const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}`;
+            response = await fetch(url);
+        }
+        data = await response.json();
 
         if (!data.success || data.data.length === 0) {
-            if (chartMessage) chartMessage.textContent = 'You do not hold any stocks';
-            if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+            const filterText = durationFilter ? ` matching the selected duration filter` : '';
+            if (chartMessage) chartMessage.textContent = `You do not hold any stocks${filterText}`;
+            if (chartTitle) {
+                const durationLabels = {
+                    'day': ' (Held >= 1 day)',
+                    'week': ' (Held >= 1 week)',
+                    'month': ' (Held >= 1 month)',
+                    'year': ' (Held >= 1 year)'
+                };
+                chartTitle.textContent = `Portfolio Price History${durationFilter ? durationLabels[durationFilter] : ''}`;
+            }
             if (priceChart) {
                 priceChart.destroy();
                 priceChart = null;
@@ -710,7 +872,16 @@ async function updateChartForPortfolio() {
             }
         });
 
-        if (chartTitle) chartTitle.textContent = 'Portfolio Price History';
+        // Update title based on filter
+        if (chartTitle) {
+            const durationLabels = {
+                'day': ' (Held >= 1 day)',
+                'week': ' (Held >= 1 week)',
+                'month': ' (Held >= 1 month)',
+                'year': ' (Held >= 1 year)'
+            };
+            chartTitle.textContent = `Portfolio Price History${durationFilter ? durationLabels[durationFilter] : ''}`;
+        }
         if (chartMessage) chartMessage.textContent = '';
         renderChart(datasets);
 
@@ -838,14 +1009,38 @@ function onUserLogout() {
     if (chartMessage) chartMessage.textContent = 'Please login to view your portfolio';
 }
 
+//////////////////////////// Holding Duration Filter Logic //////////////////////////////////////
+function addHoldingDurationFilterListener() {
+    const durationSelect = document.getElementById("durationSelect");
+    if (!durationSelect) return;
+
+    durationSelect.addEventListener("change", () => {
+        const duration = durationSelect.value;
+       
+        // Only update chart if user is logged in and not viewing a specific stock
+        if (currentUserEmail && !selectedTicker) {
+            console.log("Updating chart with duration:", duration);
+            if (duration) {
+                updateChartForPortfolio(duration);
+            } else {
+                // If empty value selected, show all holdings
+                updateChartForPortfolio();
+            }
+        } else {
+            console.log("Not updating chart - conditions not met");
+        }
+    });
+}
+
 // ---------------------------------------------------------------
 // Initializes the webpage functionalities.
 // Add or remove event listeners based on the desired functionalities.
 window.onload = function() {
-    // document.getElementById("initDB").addEventListener("click", initDB);
+    //document.getElementById("initDB").addEventListener("click", initDB);
     populateMenu({preferredIndustry: "", display: false});
     addSearchBarListener();
     addSettingListener();
     addHoldListener();
     addInsertReportListener();
+    addHoldingDurationFilterListener();
 };

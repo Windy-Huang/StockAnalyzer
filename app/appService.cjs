@@ -12,7 +12,8 @@ const dbConfig = {
     poolMin: 1,
     poolMax: 3,
     poolIncrement: 1,
-    poolTimeout: 60
+    poolTimeout: 60,
+    transportConnectTimeout: 60  // Increase connection timeout from default 20s to 60s
 };
 
 // Debug: Log connection details (password masked)
@@ -485,11 +486,11 @@ async function initiateDB() {
             CREATE TABLE Holds(
                 email VARCHAR(255),
                 ticker VARCHAR(255),
+                holdTime DATE,
                 FOREIGN KEY (email) REFERENCES Users(email) ON DELETE CASCADE,
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
                 PRIMARY KEY (ticker, email)
             )`);
-        console.log("db initiate finished");
         return true;
     }).catch((err) => {
         console.error("InitiateDB failed: ", err);
@@ -530,7 +531,7 @@ async function insertDBperCompany(data) {
 
 async function insertReportPerCompany(obj) {
     return await withOracleDB(async (connection) => {
-        const data = Object.fromEntries(obj);
+        const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
         await connection.execute(`
             INSERT INTO DebtEquity
             VALUES (:1, :2, :3)`,
@@ -545,9 +546,6 @@ async function insertReportPerCompany(obj) {
         );
         console.log("insert report finished " + data["ticker"]);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch((err) => {
-        console.error("Insert failed : ", data["ticker"], err);
-        return false;
     });
 }
 
@@ -580,7 +578,6 @@ async function insertPricePerStock(obj) {
 async function fetchSettingDropdown(type) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT ${type}, COUNT(*) FROM Stock GROUP BY ${type}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -629,10 +626,23 @@ async function updateUser(email, industry, exchange, rec) {
     });
 }
 
+async function delUser(email) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            DELETE FROM Users
+            WHERE email = :1`,
+            [email],
+            { autoCommit: true }
+        );
+        return result.rowsAffected && result.rowsAffected > 0;
+    }).catch(() => {
+        return false;
+    });
+}
+
 async function fetchAllStock() {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute('SELECT * FROM Stock ORDER BY ticker');
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -642,7 +652,6 @@ async function fetchAllStock() {
 async function filterStock(where) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`SELECT * FROM Stock WHERE ${where}`);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -662,7 +671,6 @@ async function fetchPopularStock() {
                 (SELECT h1.email FROM Holds h1 WHERE h1.ticker = h.ticker)
             )
         `);
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -674,19 +682,18 @@ async function fetchPopularStock() {
 async function fetchLeastPopularStock(industry) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
-            SELECT h.ticker
-            FROM Holds h, Stock s
-            WHERE h.ticker = s.ticker AND s.industry = :1
-            GROUP BY h.ticker
+            SELECT s.ticker
+            FROM Stock s LEFT JOIN Holds h ON h.ticker = s.ticker
+            WHERE s.industry = :1
+            GROUP BY s.ticker
             HAVING COUNT(*) <= ALL (
                 SELECT COUNT(*)
-                FROM Holds h1, Stock s1
-                WHERE h1.ticker = s1.ticker AND s1.industry = :1
-                GROUP BY h1.ticker
+                FROM Stock s1 LEFT JOIN Holds h1 ON h1.ticker = s1.ticker
+                WHERE s1.industry = :1
+                GROUP BY s1.ticker
             )`,
             [industry]
         );
-        console.log(result.rows);
         return result.rows;
     }).catch(() => {
         return [];
@@ -711,12 +718,14 @@ async function addHolding(email, ticker) {
     return await withOracleDB(async (connection) => {
         const result = await connection.execute(`
             INSERT INTO Holds
-            VALUES (:1, :2)`,
+            VALUES (:1, :2, SYSDATE)`,
             [email, ticker],
             { autoCommit: true }
         );
+        console.log('addHolding result:', result.rowsAffected, 'for email:', email, 'ticker:', ticker);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
+    }).catch((err) => {
+        console.error('Error in addHolding:', err);
         return false;
     });
 }
@@ -729,8 +738,10 @@ async function delHolding(email, ticker) {
             [email, ticker],
             { autoCommit: true }
         );
+        console.log('delHolding result:', result.rowsAffected, 'for email:', email, 'ticker:', ticker);
         return result.rowsAffected && result.rowsAffected > 0;
-    }).catch(() => {
+    }).catch((err) => {
+        console.error('Error in delHolding:', err);
         return false;
     });
 }
@@ -797,23 +808,148 @@ async function getAllStocks() {
     });
 }
 
+// Get stocks filtered by holding duration using HAVING clause
+// durationFilter: 'day' (>= 1 day), 'week' (>= 1 week), 'month' (>= 1 month), 'year' (>= 1 year)
+async function getStocksByHoldingDuration(durationFilter) {
+    return await withOracleDB(async (connection) => {
+        let durationDays;
+        switch(durationFilter) {
+            case 'day':
+                durationDays = 1;
+                break;
+            case 'week':
+                durationDays = 7;
+                break;
+            case 'month':
+                durationDays = 30;
+                break;
+            case 'year':
+                durationDays = 365;
+                break;
+            default:
+                return [];
+        }
+
+        const result = await connection.execute(`
+            SELECT h.ticker, s.name, COUNT(*) as userCount,
+                   ROUND(AVG(SYSDATE - h.holdTime), 2) as avgHoldDays
+            FROM Holds h
+            JOIN Stock s ON h.ticker = s.ticker
+            GROUP BY h.ticker, s.name
+            HAVING AVG(SYSDATE - h.holdTime) >= :1
+            ORDER BY avgHoldDays DESC`,
+            [durationDays]
+        );
+
+        return result.rows.map(row => ({
+            ticker: row[0],
+            name: row[1],
+            userCount: row[2],
+            avgHoldDays: row[3]
+        }));
+    }).catch((err) => {
+        console.error('Error in getStocksByHoldingDuration:', err);
+        return [];
+    });
+}
+
+// Get user's held stocks filtered by holding duration using HAVING clause
+// This function filters stocks held by a specific user based on how long they've held them
+async function getUserHeldStocksByDuration(email, durationFilter) {
+    return await withOracleDB(async (connection) => {
+        let durationDays;
+        switch(durationFilter) {
+            case 'day':
+                durationDays = 1;
+                break;
+            case 'week':
+                durationDays = 7;
+                break;
+            case 'month':
+                durationDays = 30;
+                break;
+            case 'year':
+                durationDays = 365;
+                break;
+            default:
+                return [];
+        }
+
+        const result = await connection.execute(`
+            SELECT h.ticker, s.name, ROUND(SYSDATE - h.holdTime, 2) as holdDays
+            FROM Holds h
+            JOIN Stock s ON h.ticker = s.ticker
+            WHERE h.email = :1
+            GROUP BY h.ticker, s.name, h.holdTime
+            HAVING (SYSDATE - h.holdTime) >= :2
+            ORDER BY holdDays DESC`,
+            [email, durationDays]
+        );
+
+        return result.rows.map(row => ({
+            ticker: row[0],
+            name: row[1],
+            holdDays: row[2]
+        }));
+    }).catch((err) => {
+        console.error('Error in getUserHeldStocksByDuration:', err);
+        return [];
+    });
+}
+
+async function fetchRecentPriceHistory(ticker, fields) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(`
+            SELECT ${fields}
+            FROM PriceHistory
+            WHERE ticker = :1
+            ORDER BY timestamp DESC
+            FETCH FIRST 1 ROW ONLY`,
+            [ticker]
+        );
+        return result.rows;
+    }).catch(() => {
+        return [];
+    });
+}
+
+// Join query: Get all users who hold a specific stock ticker
+// Joins Holds and Stock tables using WHERE clause, user provides ticker in WHERE clause
+async function getUsersHoldingStock(ticker) {
+    return await withOracleDB(async (connection) => {
+        const result = await connection.execute(
+            `SELECT h.email, h.holdTime, s.name, s.industry, s.exchange
+             FROM Holds h, Stock s
+             WHERE h.ticker = s.ticker AND h.ticker = :1
+             ORDER BY h.holdTime DESC`,
+            [ticker]
+        );
+        return result.rows.map(row => ({
+            email: row[0],
+            holdTime: row[1],
+            stockName: row[2],
+            industry: row[3],
+            exchange: row[4]
+        }));
+    }).catch((err) => {
+        console.error('Error in getUsersHoldingStock:', err);
+        return [];
+    });
+}
+
 // other modules can check to make sure connection is connected before proceeding
 const poolReady = initializeConnectionPool();
 module.exports = {
     poolReady,
     withOracleDB,
     testOracleConnection,
-    fetchDemotableFromDb,
-    initiateDemotable,
-    insertDemotable,
-    updateNameDemotable,
-    countDemotable,
     initiateDB,
     insertDBperCompany,
     insertReportPerCompany,
     insertPricePerStock,
     fetchUser,
     updateUser,
+    delUser,
     fetchSettingDropdown,
     fetchAllStock,
     filterStock,
@@ -833,5 +969,9 @@ module.exports = {
     getRecommendation6,
     getRecommendation7,
     insertAnalyst,
-    checkAlreadyExists
+    checkAlreadyExists,
+    getStocksByHoldingDuration,
+    getUserHeldStocksByDuration,
+    fetchRecentPriceHistory,
+    getUsersHoldingStock
 };
