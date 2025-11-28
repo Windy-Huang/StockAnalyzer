@@ -113,9 +113,6 @@
         <canvas id="priceChart"></canvas>
     </div>
 
-    <!-- buy, sell, hold  OR  rate 0~7 -->
-    Recommendation: <div id="recommendation"></div> <br>
-
     <div id="insertReportPopup" class="popup" style="display: none; position: fixed; bottom: 70px; left: 10px; transform: translate(0%, 0%)">
         <form id="insertReportForm">
             <div class="form-row">
@@ -137,9 +134,14 @@
         </form>
     </div>
 
-    <div class="btnWrapper">
-        <button id="insertButton" style="width: 140px" hidden>Insert Report</button>
-        <button id="holdButton" disabled hidden data-tooltip="Please login">Hold</button>
+    <div id="stockRelatedOperation" hidden>
+        <!-- buy, sell, hold  OR  rate 0~7 -->
+        Recommendation: <div id="recommendation"></div> <br>
+
+        <div class="btnWrapper">
+            <button id="insertButton" style="width: 140px">Insert Report</button>
+            <button id="holdButton" disabled data-tooltip="Please login">Hold</button>
+        </div>
     </div>
 
 

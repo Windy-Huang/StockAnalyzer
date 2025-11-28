@@ -111,6 +111,7 @@ function clearStockSelection() {
     // Clear stock details
     const container = document.getElementById("selectedStock");
     container.innerHTML = '';
+    document.getElementById("stockRelatedOperation").hidden = true;
 
     // Show the duration filter again and hide the back button
     const portfolioControls = document.getElementById("portfolioControls");
@@ -458,6 +459,7 @@ async function loadSetting() {
 
     // Trigger graph to load user's portfolio
     onUserLogin(username);
+    clearStockSelection();
 }
 
 async function loadSettingDropdown() {
@@ -595,7 +597,7 @@ function addHoldListener() {
                 add: btn.textContent === "Hold"
             })
         });
-        btn.hidden = true;
+        document.getElementById("stockRelatedOperation").hidden = true;
         await refreshMenu();
 
         // Navigate back to portfolio to see updated holdings in the overlaid graph
@@ -616,7 +618,7 @@ function addHoldListener() {
 
 async function renderHoldOnSelect() {
     const btn = document.getElementById("holdButton");
-    btn.hidden = false;
+    document.getElementById("stockRelatedOperation").hidden = false;
 
     if (username) {
         btn.disabled = false;
@@ -640,10 +642,6 @@ function addInsertReportListener() {
     const cancel = document.getElementById("reportCancel");
     const submit = document.getElementById("reportSubmit");
     if (!btn || !cancel || !submit) return;
-
-    document.addEventListener('click', () => {
-        if (selectedTicker) btn.hidden = false;
-    });
 
     btn.addEventListener("click", () => {
         resetReportPopup();
