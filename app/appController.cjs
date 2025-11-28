@@ -209,10 +209,23 @@ router.get('/user-held-stocks/:email/duration/:duration', async (req, res) => {
     }
 });
 
+
 router.post('/price-history', async (req, res) => {
     const { ticker, fields } = req.body;
     const result = await appService.fetchRecentPriceHistory(ticker, fields);
     res.json({ data: result });
+});
+
+// Get all users holding a specific stock (JOIN query with WHERE clause)
+router.get('/users-holding-stock/:ticker', async (req, res) => {
+    try {
+        const { ticker } = req.params;
+        const users = await appService.getUsersHoldingStock(ticker);
+        res.json({ success: true, data: users });
+    } catch (error) {
+        console.error('Error fetching users holding stock:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 module.exports = router;
