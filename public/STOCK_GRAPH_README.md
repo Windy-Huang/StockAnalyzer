@@ -17,7 +17,7 @@ The stock price graph displays:
   - `GET /price-history/:ticker` - Get price history for a stock
   - `GET /stocks` - Get all available stocks
 
-- **appService.cjs**: Added 3 new database functions
+- **appService_ora.cjs**: Added 3 new database functions
   - `getUserHeldStocks(email)`
   - `getPriceHistory(ticker)`
   - `getAllStocks()`

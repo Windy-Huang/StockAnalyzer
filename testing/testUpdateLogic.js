@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { updatePriceHistory, updateDividends, updateStockSplits } from '../daily_update/updateLogic.js';
-import * as appService from '../appService.cjs';
+import * as appService from '../appService_ora.cjs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 

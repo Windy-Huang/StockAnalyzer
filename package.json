@@ -1,21 +1,21 @@
 {
-  "name": "node_demo_project",
+  "name": "stock fullstack project",
   "version": "1.0.0",
-  "description": "The sample Node.js project for CPSC304.",
-  "main": "server.js",
+  "description": "Website that pulls daily stock updates and provides recommendation",
+  "main": "server.cjs",
   "keywords": [],
   "author": {
-    "name": "Zoe Yuan"
+    "name": "Windy Huang"
   },
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
-    "finnhub": "^2.0.11",
+    "express": "^5.2.1",
     "htmlparser2": "^10.0.0",
     "node-cron": "^4.2.1",
     "node-fetch": "^2.7.0",
-    "oracledb": "^6.10.0"
+    "pg": "^8.16.3"
   }
 }

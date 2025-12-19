@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import cron from 'node-cron';
 import { updatePriceHistory, updateDividends, updateStockSplits } from './updateLogic.js';
-import * as appService from '../appService.cjs';
+import * as appService from '../appService_ora.cjs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
