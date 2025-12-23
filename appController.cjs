@@ -1,19 +1,18 @@
-const express = require('express');
-const appService = require('./appService.cjs');
-const {initializeWithSP500, getCompany10Q, getReportByAccessNum, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript.cjs");
+// Rest API endpoints
 
+const express = require('express');
 const router = express.Router();
 
-// ----------------------------------------------------------
-// API endpoints
-// Modify or extend these routes based on your project's needs.
-router.get('/check-db-connection', async (req, res) => {
-    res.send('not used');
-});
+const initService = require('./db/initialization');
+const stockService = require('./db/stock');
+const userService = require('./db/user');
+const recommendationService = require('./db/recommendation');
+
+const {initializeWithSP500, getCompany10Q, getReportByAccessNum, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript.cjs");
 
 router.post("/get-recommendation", async (req, res) => {
     const { ticker } = req.body;
-    const checkResult = await appService.checkAlreadyExists(ticker);
+    const checkResult = await recommendationService.getRecommendation(ticker);
     if (checkResult != -1) {
         if (checkResult == 0) {
             res.json({ 
@@ -73,15 +72,15 @@ router.post("/get-recommendation", async (req, res) => {
         }
     }
     else {
-        const recommendationResult1 = await appService.getRecommendation1(ticker);
-        const recommendationResult2 = await appService.getRecommendation2(ticker);
-        const recommendationResult3 = await appService.getRecommendation3(ticker);
-        const recommendationResult4 = await appService.getRecommendation4(ticker);
-        const recommendationResult5 = await appService.getRecommendation5(ticker);
-        const recommendationResult6 = await appService.getRecommendation6(ticker);
-        const recommendationResult7 = await appService.getRecommendation7(ticker);
+        const recommendationResult1 = await recommendationService.getPERation(ticker);
+        const recommendationResult2 = await recommendationService.getEPSGrowth(ticker);
+        const recommendationResult3 = await recommendationService.getROE(ticker);
+        const recommendationResult4 = await recommendationService.getMovingAverage(ticker);
+        const recommendationResult5 = await recommendationService.getMomentum(ticker);
+        const recommendationResult6 = await recommendationService.getDERatio(ticker);
+        const recommendationResult7 = await recommendationService.getDividentYield(ticker);
 
-        const insertResult = await appService.insertAnalyst(ticker, recommendationResult1+recommendationResult2+recommendationResult3+recommendationResult4+recommendationResult5+recommendationResult6+recommendationResult7);
+        const insertResult = await recommendationService.insertRecommendation(ticker, recommendationResult1+recommendationResult2+recommendationResult3+recommendationResult4+recommendationResult5+recommendationResult6+recommendationResult7);
 
         if (recommendationResult1 == -1 || recommendationResult2 == -1 || recommendationResult3 == -1 || recommendationResult4 == -1 || recommendationResult5 == -1 || recommendationResult6 == -1 || recommendationResult7 == -1) {
             res.status(500).json({ 
@@ -150,34 +149,9 @@ router.post("/get-recommendation", async (req, res) => {
     }
 });
 
-router.post("/update-name-demotable", async (req, res) => {
-    const { oldName, newName } = req.body;
-    const updateResult = await appService.updateNameDemotable(oldName, newName);
-    if (updateResult) {
-        res.json({ success: true });
-    } else {
-        res.status(500).json({ success: false });
-    }
-});
-
-router.get('/count-demotable', async (req, res) => {
-    const tableCount = await appService.countDemotable();
-    if (tableCount >= 0) {
-        res.json({ 
-            success: true,  
-            count: tableCount
-        });
-    } else {
-        res.status(500).json({ 
-            success: false, 
-            count: tableCount
-        });
-    }
-});
-
 router.post("/initiate-db", async (req, res) => {
     try {
-        const initiateResult = await appService.initiateDB();
+        const initiateResult = await initService.initiateDB();
         if (initiateResult) {
             res.json({ success: true });
         } else {
@@ -190,11 +164,11 @@ router.post("/initiate-db", async (req, res) => {
 });
 
 router.post("/insert-db", async (req, res) => {
-    let rejected = await initializeWithSP500(appService.insertDBperCompany, getCompanyProfile, 2);
+    let rejected = await initializeWithSP500(initService.insertDBperCompany, getCompanyProfile, 10);
     if (!rejected) {
-        rejected = await initializeWithSP500(appService.insertReportPerCompany, getCompany10Q, 2);
+        rejected = await initializeWithSP500(initService.insertReportPerCompany, getCompany10Q, 5);
         if (!rejected) {
-            rejected = await initializeWithSP500(appService.insertPricePerStock, getHistoricalStockPrice, 1);
+            rejected = await initializeWithSP500(initService.insertPricePerStock, getHistoricalStockPrice, 1);
             if (!rejected) res.json({ success: true });
         }
     }
@@ -216,7 +190,7 @@ router.post("/insert-report", async (req, res) => {
             res.status(422).json({ success: false, report: Object.fromEntries(parsedReport) });
         } else {
             try {
-                await appService.insertReportPerCompany(parsedReport);
+                await initService.insertReportPerCompany(parsedReport);
                 res.json({ success: true });
             } catch (e) {
                 console.error("Insert failed:", e);
@@ -237,7 +211,7 @@ router.post("/insert-report", async (req, res) => {
 router.post("/insert-report-parsed", async (req, res) => {
     const { report } = req.body;
     try {
-        await appService.insertReportPerCompany(report);
+        await initService.insertReportPerCompany(report);
         res.json({ success: true });
     } catch (e) {
         console.error("Insert failed:", e);
@@ -253,10 +227,10 @@ router.post("/insert-report-parsed", async (req, res) => {
 
 // Specify industry: /menu?industry=tech
 router.get('/menu', async (req, res) => {
-    const tableContent = await appService.fetchAllStock();
-    const popular = await appService.fetchPopularStock();
+    const tableContent = await stockService.fetchAllStock();
+    const popular = await stockService.fetchPopularStock();
     if (req.query.industry) {
-        res.json({data: tableContent, popular: popular, leastPopular: await appService.fetchLeastPopularStock(req.query.industry)});
+        res.json({data: tableContent, popular: popular, leastPopular: await stockService.fetchLeastPopularStock(req.query.industry)});
     } else {
         res.json({data: tableContent, popular: popular, leastPopular: []});
     }
@@ -264,21 +238,21 @@ router.get('/menu', async (req, res) => {
 
 router.post("/query", async (req, res) => {
     const { where } = req.body;
-    res.json({data: await appService.filterStock(where)});
+    res.json({data: await stockService.filterStock(where)});
 });
 
 router.get('/setting-dropdown', async (req, res) => {
-    res.json({industry: await appService.fetchSettingDropdown("industry"), exchange: await appService.fetchSettingDropdown("exchange")});
+    res.json({industry: await userService.fetchSettingDropdown("industry"), exchange: await userService.fetchSettingDropdown("exchange")});
 });
 
 router.post('/user', async (req, res) => {
     const { email } = req.body;
-    res.json({data: await appService.fetchUser(email)});
+    res.json({data: await userService.fetchUser(email)});
 });
 
 router.put('/user', async (req, res) => {
     const { email, industry, exchange, rec } = req.body;
-    const result = await appService.updateUser(email, industry, exchange, rec);
+    const result = await userService.updateUser(email, industry, exchange, rec);
     if (result) {
         res.json({ success: true });
     } else {
@@ -288,11 +262,11 @@ router.put('/user', async (req, res) => {
 
 router.delete('/user', async (req, res) => {
     const { email } = req.body;
-    res.json({success: await appService.delUser(email)});
+    res.json({success: await userService.delUser(email)});
 });
 
 router.get('/holding', async (req, res) => {
-    const result = await appService.verifyHolding(req.query.email, req.query.ticker);
+    const result = await stockService.verifyHolding(req.query.email, req.query.ticker);
     res.json({ exist: result });
 });
 
@@ -301,9 +275,9 @@ router.put('/holding', async (req, res) => {
     console.log('PUT /holding - email:', email, 'ticker:', ticker, 'add:', add);
     let result = false;
     if (add) {
-        result = await appService.addHolding(email, ticker);
+        result = await stockService.addHolding(email, ticker);
     } else {
-        result = await appService.delHolding(email, ticker);
+        result = await stockService.delHolding(email, ticker);
     }
     console.log('PUT /holding - result:', result);
     res.json({ success: result });
@@ -313,7 +287,7 @@ router.put('/holding', async (req, res) => {
 router.get('/user-held-stocks/:email', async (req, res) => {
     try {
         const { email } = req.params;
-        const stocks = await appService.getUserHeldStocks(email);
+        const stocks = await stockService.getUserHeldStocks(email);
         res.json({ success: true, data: stocks });
     } catch (error) {
         console.error('Error fetching user held stocks:', error);
@@ -325,33 +299,10 @@ router.get('/user-held-stocks/:email', async (req, res) => {
 router.get('/price-history/:ticker', async (req, res) => {
     try {
         const { ticker } = req.params;
-        const priceHistory = await appService.getPriceHistory(ticker);
+        const priceHistory = await stockService.getPriceHistory(ticker);
         res.json({ success: true, data: priceHistory });
     } catch (error) {
         console.error('Error fetching price history:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Get all available stocks
-router.get('/stocks', async (req, res) => {
-    try {
-        const stocks = await appService.getAllStocks();
-        res.json({ success: true, data: stocks });
-    } catch (error) {
-        console.error('Error fetching stocks:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Get stocks filtered by holding duration (HAVING clause query)
-router.get('/stocks-by-holding-duration/:duration', async (req, res) => {
-    try {
-        const { duration } = req.params;
-        const stocks = await appService.getStocksByHoldingDuration(duration);
-        res.json({ success: true, data: stocks });
-    } catch (error) {
-        console.error('Error fetching stocks by holding duration:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -360,7 +311,7 @@ router.get('/stocks-by-holding-duration/:duration', async (req, res) => {
 router.get('/user-held-stocks/:email/duration/:duration', async (req, res) => {
     try {
         const { email, duration } = req.params;
-        const stocks = await appService.getUserHeldStocksByDuration(email, duration);
+        const stocks = await stockService.getUserHeldStocksByDuration(email, duration);
         res.json({ success: true, data: stocks });
     } catch (error) {
         console.error('Error fetching user held stocks by duration:', error);
@@ -371,20 +322,8 @@ router.get('/user-held-stocks/:email/duration/:duration', async (req, res) => {
 
 router.post('/price-history', async (req, res) => {
     const { ticker, fields } = req.body;
-    const result = await appService.fetchRecentPriceHistory(ticker, fields);
+    const result = await stockService.fetchRecentPriceHistory(ticker, fields);
     res.json({ data: result });
-});
-
-// Get all users holding a specific stock (JOIN query with WHERE clause)
-router.get('/users-holding-stock/:ticker', async (req, res) => {
-    try {
-        const { ticker } = req.params;
-        const users = await appService.getUsersHoldingStock(ticker);
-        res.json({ success: true, data: users });
-    } catch (error) {
-        console.error('Error fetching users holding stock:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
 });
 
 module.exports = router;
