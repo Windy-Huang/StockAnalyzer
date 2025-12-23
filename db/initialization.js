@@ -102,7 +102,7 @@ async function initiateDB() {
             CREATE TABLE AnalystRating(
                 analyst_rating_id INTEGER PRIMARY KEY,
                 ticker VARCHAR(255),
-                recommendation INTEGER,
+                recommendation VARCHAR(255),
                 timestamp DATE,
                 FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
             )`);

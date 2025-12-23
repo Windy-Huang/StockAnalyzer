@@ -50,7 +50,7 @@ async function fetchLeastPopularStock(industry) {
 async function filterStock(whereClause) {
     try {
         const result = await db.query(`SELECT * FROM Stock WHERE ${whereClause}`);
-        return result.rows.map(r => r.ticker);
+        return result.rows.map(r => [r.ticker, r.name, r.country, r.industry, r.exchange, r.market_cap]);
     } catch (err) {
         return [];
     }
@@ -113,7 +113,7 @@ async function getPriceHistory(ticker) {
 
 async function fetchRecentPriceHistory(ticker, fields) {
     try {
-        const result = await query(`
+        const result = await db.query(`
             SELECT ${fields}
             FROM PriceHistory
             WHERE ticker = $1

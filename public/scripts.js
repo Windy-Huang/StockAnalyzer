@@ -1,15 +1,7 @@
 //////////////////////////// DB initialization from various API //////////////////////////////////////
 async function initDB() {
-    let response = await fetch("/initiate-db", {
-        method: 'POST'
-    });
-    await response.json();
-    response = await fetch("/insert-db", {
-        method: 'POST'
-    });
-    console.log("Finish initiating database");
+    await fetch("/v1/companies", { method: 'POST' });
 }
-
 
 //////////////////////////// Stock Graph State Management //////////////////////////////////////
 let selectedStock = null;
@@ -61,23 +53,12 @@ async function handleStockSelection(symbol) {
 
     /////////////////////////// Renders recommendation here //////////////////////////////////
     const tickerValue = selectedTicker;
-    const response = await fetch('/get-recommendation', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            ticker: tickerValue,
-        })
-    });
+    const response = await fetch(`/v1/recommendations/${encodeURIComponent(tickerValue)}`, { method: 'POST' });
 
     const responseData = await response.json();
     const messageElement = document.getElementById('recommendation');
-
     if (responseData.success) {
-        const recommendationSum = responseData.sum;
-        const recommendationMsg = responseData.msg;
-        messageElement.textContent = `${recommendationMsg} (${recommendationSum}/7)`;
+        messageElement.textContent = responseData.msg;
     } else {
         messageElement.textContent = "Error getting recommendation!";
     }
@@ -158,10 +139,10 @@ function renderTitleRow(container) {
 async function renderStockDetail(container) {
     const metaData = [
         { key: "timestamp", label: "Last updated: " },
-        { key: "openPrice", label: "Open price: $" },
-        { key: "highPrice", label: "High price: $" },
-        { key: "lowPrice", label: "Low price: $" },
-        { key: "closePrice", label: "Close price: $" },
+        { key: "open_price", label: "Open price: $" },
+        { key: "high_price", label: "High price: $" },
+        { key: "low_price", label: "Low price: $" },
+        { key: "close_price", label: "Close price: $" },
         { key: "volume", label: "Volume: " }
     ];
 
@@ -211,15 +192,10 @@ async function updateStockPriceDetail(container) {
     });
     fields = fields.replace(/, $/, '');
 
-    const response = await fetch('/price-history', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            ticker: selectedTicker,
-            fields: fields
-        })
+    const response = await fetch(`/v1/stocks/${encodeURIComponent(selectedTicker)}/price-histories`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: fields })
     });
     const responseData = await response.json();
 
@@ -237,7 +213,7 @@ async function populateMenu(option) {
     if (!stockMenu) return;
 
     stockMenu.innerHTML = "";
-    const response = await fetch(`/menu?industry=${option.preferredIndustry}`, { method: 'GET' });
+    const response = await fetch(`/v1/recommendations?industry=${encodeURIComponent(option.preferredIndustry)}`, { method: 'GET' });
     const responseData = await response.json();
 
     if (response.ok) {
@@ -289,15 +265,11 @@ async function refreshMenu() {
 let filterList = "";
 
 async function applyFilterList(attribute, text) {
-    const where = filterList + attribute + " LIKE '%" + text + "%'";
-    const response = await fetch('/query', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            where: where
-        })
+    const where = filterList + attribute + " ILIKE '%" + text + "%'";
+    const response = await fetch('/v1/stocks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ where: where })
     });
     const responseData = await response.json();
 
@@ -322,7 +294,7 @@ async function applyFilterList(attribute, text) {
 }
 
 function addToFilterList(attribute, text, comparitor) {
-    filterList = filterList + attribute + " LIKE '%" + text + "%' " + comparitor + " ";
+    filterList = filterList + attribute + " ILIKE '%" + text + "%' " + comparitor + " ";
 }
 
 function clearFilterList() {
@@ -419,15 +391,7 @@ async function loadSetting() {
     document.getElementById("settingDelete").hidden = false;
     await loadSettingDropdown();
 
-    const response = await fetch('/user', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            email: username
-        })
-    });
+    const response = await fetch(`/v1/users/${encodeURIComponent(username)}`, { method: 'POST' });
     const responseData = await response.json();
 
     if (response.ok && responseData.data.length === 1) {
@@ -446,7 +410,7 @@ async function loadSetting() {
 }
 
 async function loadSettingDropdown() {
-    const response = await fetch(`/setting-dropdown`, { method: 'GET' });
+    const response = await fetch(`/v1/settings`, { method: 'GET' });
     const responseData = await response.json();
 
     if (response.ok) {
@@ -493,13 +457,10 @@ async function loadSettingDropdown() {
 }
 
 async function updateSetting() {
-    const response = await fetch('/user', {
+    const response = await fetch(`/v1/users/${encodeURIComponent(username)}`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            email: username,
             industry: document.getElementById("settingIndustry").value,
             exchange: document.getElementById("settingExchange").value,
             rec: document.getElementById("settingRec").checked ? 1 : 0,
@@ -523,15 +484,7 @@ async function handleDeleteUser(e) {
     e.preventDefault();
     const msg = document.getElementById("settingMessage");
 
-    const response = await fetch('/user', {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            email: username
-        })
-    });
+    const response = await fetch(`/v1/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
     const responseData = await response.json();
 
     if (response.ok && responseData.success) {
@@ -570,17 +523,11 @@ function addHoldListener() {
 
     btn.addEventListener('click', async() => {
         const action = btn.textContent === "Hold" ? "added to" : "removed from";
-        const response = await fetch('/holding', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: username,
-                ticker: selectedTicker,
-                add: btn.textContent === "Hold"
-            })
-        });
+
+        let URI = `/v1/users/${encodeURIComponent(username)}/holdings/${encodeURIComponent(selectedTicker)}`;
+        if (btn.textContent === "Hold") URI += "?add=true";
+        await fetch(URI, { method: 'PUT' });
+
         document.getElementById("stockRelatedOperation").hidden = true;
         await refreshMenu();
 
@@ -609,7 +556,7 @@ async function renderHoldOnSelect() {
         btn.style.cursor = "pointer";
         document.getElementById("holdButton").dataset.tooltip = "";
 
-        const response = await fetch(`/holding?email=${username}&ticker=${selectedTicker}`, { method: 'GET' });
+        const response = await fetch(`/v1/users/${encodeURIComponent(username)}/holdings/${encodeURIComponent(selectedTicker)}`, { method: 'GET' });
         const responseData = await response.json();
         responseData.exist ? btn.textContent = "Unhold" : btn.textContent = "Hold";
     } else if (username === "") {
@@ -674,15 +621,7 @@ async function handleInsertReport(e) {
             return;
         }
 
-        const response = await fetch('/insert-report', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                accessNum: accessNum
-            })
-        });
+        const response = await fetch(`/v1/reports/${encodeURIComponent(accessNum)}`, { method: 'POST' });
         const responseData = await response.json();
 
         if (!response.ok) {
@@ -709,14 +648,10 @@ async function handleInsertReport(e) {
         validateReportFields();
         if (Object.keys(parsed).length < 9) return;
 
-        const response = await fetch('/insert-report-parsed', {
+        const response = await fetch('/v1/reports', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                report: parsed
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report: parsed })
         });
         const responseData = await response.json();
 
@@ -772,10 +707,8 @@ function validateReportFields() {
         const val = input.value.trim();
         if (!val) {
             error.textContent = "Please fill in all fields";
-            return;
         } else if (Number.isNaN(Number(val))) {
             error.textContent = "Only numerical character allowed in all fields";
-            return;
         } else {
             parsed[input.name] = val;
         }
@@ -804,11 +737,11 @@ async function updateChartForPortfolio(durationFilter = null) {
         // Get user's held stocks - either filtered by duration or all
         let response, data;
         if (durationFilter) {
-            const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}/duration/${durationFilter}`;
-            response = await fetch(url);
+            const url = `/v1/users/${encodeURIComponent(currentUserEmail)}/durations/${encodeURIComponent(durationFilter)}`;
+            response = await fetch(url, { method: 'GET' });
         } else {
-            const url = `/user-held-stocks/${encodeURIComponent(currentUserEmail)}`;
-            response = await fetch(url);
+            const url = `/v1/users/${encodeURIComponent(currentUserEmail)}/stocks`;
+            response = await fetch(url, { method: 'GET' });
         }
         data = await response.json();
 
@@ -834,7 +767,7 @@ async function updateChartForPortfolio(durationFilter = null) {
         // Fetch price history for all held stocks
         const priceDataResults = [];
         for (const stock of data.data) {
-            const res = await fetch(`/price-history/${stock.ticker}`);
+            const res = await fetch(`/v1/stocks/${encodeURIComponent(stock.ticker)}/price-histories`, { method: 'GET' });
             const json = await res.json();
             priceDataResults.push(json);
         }
@@ -882,7 +815,7 @@ async function updateChartForStock(ticker) {
     const chartTitle = document.getElementById('chartTitle');
 
     try {
-        const response = await fetch(`/price-history/${ticker}`);
+        const response = await fetch(`/v1/stocks/${encodeURIComponent(ticker)}/price-histories`, { method: 'GET' });
         const data = await response.json();
 
         if (!data.success || data.data.length === 0) {

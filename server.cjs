@@ -1,5 +1,5 @@
 const express = require('express');
-const appController = require('./appController.cjs');
+const appController = require('./appController');
 
 // Load environment variables from .env file
 // Ensure your .env file has the required database credentials.

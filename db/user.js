@@ -9,7 +9,7 @@ async function fetchUser(email) {
             await db.query(`INSERT INTO Users VALUES ($1, NULL, NULL, 0)`, [email]);
             return [];
         }
-        return result.rows;
+        return result.rows.map(r => [r.email, r.preferred_industry, r.preferred_exchange, r.show_recommendation]);
     } catch (err) {
         return [];
     }

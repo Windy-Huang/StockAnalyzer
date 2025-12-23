@@ -18,9 +18,9 @@ async function getRecommendation(ticker) {
                 )`, [ticker]);
             return ans.rows[0].recommendation;
         }
-        return -1;
+        return "";
     } catch (err) {
-        return -1;
+        return "";
     }
 }
 
