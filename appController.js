@@ -29,33 +29,41 @@ router.post("/v1/recommendations/:ticker", async (req, res) => {
                 recommendationService.getDERatio(ticker),
                 recommendationService.getDividentYield(ticker)
             ]);
-            if ([pe, eps, roe, ma, mom, de, div].includes(-1)) {
+
+            // Calculated weighted final score
+            let weightedSum = 0;
+            let totalValidWeight = 0;
+            const tags = [];
+            const processMetric = (value, weight, positiveTag, negativeTag) => {
+                if (value !== -1) {
+                    weightedSum += (value * weight);
+                    totalValidWeight += weight;
+                    if (value === 1 && positiveTag) tags.push(positiveTag);
+                    if (value === 0 && negativeTag) tags.push(negativeTag);
+                }
+            };
+
+            processMetric(pe,  0.5, "[Cheap Valuation]", "[Overvalued]");
+            processMetric(eps, 2.0, "[Great Growth]",    "[Slow Growth]");
+            processMetric(roe, 2.0, "[High Efficiency]", "[Low Efficiency]");
+            processMetric(mom, 1.5, "[Strong Momentum]", "[Negative Momentum]");
+            processMetric(ma,  1.0, null,   null);
+            processMetric(de,  1.5, "[Healthy Debt]",    "[Huge Debt Risk]");
+            processMetric(div, 0.5, "[Pays Dividend]",   null);
+
+            // Error handling
+            if (totalValidWeight === 0) {
                 return res.status(501).json({ success: false, msg: "Insufficient Data" });
             }
 
-            // Generate reasons for recommendation
-            const tags = [];
-            (pe === 1) ? tags.push("[Cheap Valuation]") : tags.push("[Overvalued]");
-            (eps === 1) ? tags.push("[Great Growth]") : tags.push("[Slow Growth]");
-            (roe === 1) ? tags.push("[High Efficiency]") : tags.push("[Low Efficiency]");
-            (mom === 1) ? tags.push("[Strong Momentum]") : tags.push("[Negative Momentum]");
-            if (div === 1) tags.push("[Pays Dividend]");
-            if (de === 0)  tags.push("[Huge Debt Risk]");
-
-            // Calculate final recommendation
-            const weightedSum =
-                (eps * 2.0) + (roe * 2.0) + (de * 1.5) + (mom * 1.5) +
-                (ma * 1.0) + (pe * 0.5) + (div * 0.5);
-            const finalScore = Math.round((weightedSum / 9.0) * 7);
-
+            const finalScore = Math.round((weightedSum / totalValidWeight) * 7);
             let action = "HOLD";
             if (finalScore >= 5) {
                 action = "BUY";
             } else if (finalScore <= 2) {
                 action = "SELL";
             }
-            let recommendation = action + " - ";
-            tags.forEach((t) => recommendation = recommendation + t + " ");
+            let recommendation = `${action} - ${tags.join(" ")}`;
 
             await recommendationService.insertRecommendation(ticker, recommendation);
             res.json({ success: true, msg: recommendation });

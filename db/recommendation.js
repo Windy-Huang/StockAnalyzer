@@ -53,19 +53,15 @@ async function getPERation(ticker) {
     try {
         const latest = await db.query(`SELECT open_price, timestamp FROM PriceHistory WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
         if (!latest.rows.length) return -1;
-
         const old = await db.query(`
             SELECT open_price FROM PriceHistory 
             WHERE ticker=$1 AND timestamp < ($2::date - interval '1 year') 
             ORDER BY timestamp DESC LIMIT 1`, [ticker, latest.rows[0].timestamp]);
-
-        if (!old.rows.length) return 0;
+        if (!old.rows.length) return -1;
 
         const latestPrice = parseFloat(latest.rows[0].open_price);
         const oldPrice = parseFloat(old.rows[0].open_price);
-
-        if (latestPrice / (latestPrice - oldPrice) < 20) return 1;
-        return 0;
+        return +(latestPrice / (latestPrice - oldPrice) < 20);
     } catch (err) { return -1; }
 }
 
@@ -73,19 +69,15 @@ async function getEPSGrowth(ticker) {
     try {
         const latest = await db.query(`SELECT eps, timestamp FROM Report WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
         if (!latest.rows.length) return -1;
-
         const old = await db.query(`
             SELECT eps FROM Report 
             WHERE ticker=$1 AND timestamp < ($2::date - interval '10 months') 
             ORDER BY timestamp DESC LIMIT 1`, [ticker, latest.rows[0].timestamp]);
-
-        if (!old.rows.length) return 0;
+        if (!old.rows.length) return -1;
 
         const curEPS = parseFloat(latest.rows[0].eps);
         const oldEPS = parseFloat(old.rows[0].eps);
-
-        if ((curEPS - oldEPS) / oldEPS > 0.1) return 1;
-        return 0;
+        return +((curEPS - oldEPS) / oldEPS > 0.1);
     } catch (err) { return -1; }
 }
 
@@ -93,17 +85,16 @@ async function getROE(ticker) {
     try {
         const res = await db.query(`SELECT net_income, equity FROM Report WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
         if (!res.rows.length) return -1;
+
         const { netIncome, equity } = res.rows[0];
-        if ((parseFloat(netIncome)/parseFloat(equity)) > 0.15) return 1;
-        return 0;
+        return +((parseFloat(netIncome)/parseFloat(equity)) > 0.15);
     } catch (err) { return -1; }
 }
 
 async function getMovingAverage(ticker) {
     try {
-        // Needs at least 50 rows
-        const res = await db.query(`SELECT "openPrice" FROM PriceHistory WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 50`, [ticker]);
-        if (res.rows.length < 50) return 0;
+        const res = await db.query(`SELECT open_price FROM PriceHistory WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 50`, [ticker]);
+        if (res.rows.length < 50) return -1;
 
         const prices = res.rows.map(r => parseFloat(r.open_price));
         let sumRecent = 0;
@@ -112,36 +103,31 @@ async function getMovingAverage(ticker) {
         for(let i=20; i<50; i++) sumOlder += prices[i];
 
         const totalSum = sumRecent + sumOlder;
-        if (sumRecent * 2.5 > totalSum) return 1;
-        return 0;
+        return +(sumRecent * 2.5 > totalSum);
     } catch (err) { return -1; }
 }
 
 async function getMomentum(ticker) {
     try {
-        const latest = await query(`SELECT open_price, timestamp FROM PriceHistory WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
+        const latest = await db.query(`SELECT open_price, timestamp FROM PriceHistory WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
         if (!latest.rows.length) return -1;
-
         const old = await db.query(`
             SELECT open_price FROM PriceHistory 
             WHERE ticker=$1 AND timestamp < ($2::date - interval '1 year') 
             ORDER BY timestamp DESC LIMIT 1`, [ticker, latest.rows[0].timestamp]);
-
-        if (!old.rows.length) return 0;
+        if (!old.rows.length) return -1;
 
         const curP = parseFloat(latest.rows[0].open_price);
         const oldP = parseFloat(old.rows[0].open_price);
-        if ((curP - oldP) / oldP > 0.2) return 1;
-        return 0;
+        return +((curP - oldP) / oldP > 0.2);
     } catch (err) { return -1; }
 }
 
 async function getDERatio(ticker) {
     try {
-        const res = await query(`SELECT total_debt, equity FROM Report WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
+        const res = await db.query(`SELECT total_debt, equity FROM Report WHERE ticker=$1 ORDER BY timestamp DESC LIMIT 1`, [ticker]);
         if (!res.rows.length) return -1;
-        if ((parseFloat(res.rows[0].total_debt) / parseFloat(res.rows[0].equity)) < 1) return 1;
-        return 0;
+        return +((parseFloat(res.rows[0].total_debt) / parseFloat(res.rows[0].equity)) < 1);
     } catch (err) { return -1; }
 }
 
@@ -155,12 +141,9 @@ async function getDividentYield(ticker) {
             FROM Divident d 
             WHERE ticker=$1 AND timestamp > ($2::date - interval '1 year')`,
             [ticker, latest.rows[0].timestamp]);
-
         const div = parseFloat(divRes.rows[0].total_div || 0);
         const price = parseFloat(latest.rows[0].open_price);
-
-        if ((div / price) > 0.02) return 1;
-        return 0;
+        return +((div / price) > 0.02);
     } catch (err) { return -1; }
 }
 
