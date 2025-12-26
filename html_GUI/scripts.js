@@ -206,7 +206,7 @@ async function updateStockPriceDetail(container) {
     }
 }
 
-
+//done
 //////////////////////////// Side bar menu generation //////////////////////////////////////
 async function populateMenu(option) {
     const stockMenu = document.getElementById('stockMenu');
@@ -260,7 +260,7 @@ async function refreshMenu() {
     }
 }
 
-
+//done
 //////////////////////////// Search bar generation //////////////////////////////////////
 let filterList = "";
 
@@ -336,7 +336,7 @@ function addSearchBarListener() {
     });
 }
 
-
+//done
 //////////////////////////// User setting popup generation //////////////////////////////////////
 function addSettingListener() {
     const login = document.getElementById("userSetting");
@@ -515,7 +515,7 @@ function resetSettingPopup() {
     parent.frames["contents"].document.dispatchEvent(new Event("click"));
 }
 
-
+// done
 //////////////////////////// Stock holding logic //////////////////////////////////////
 function addHoldListener() {
     const btn = document.getElementById("holdButton");
@@ -567,7 +567,7 @@ async function renderHoldOnSelect() {
     }
 }
 
-
+// ignore
 //////////////////////////// Insert report logic //////////////////////////////////////
 function addInsertReportListener() {
     const btn = document.getElementById("insertButton");

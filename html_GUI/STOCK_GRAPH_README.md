@@ -12,7 +12,7 @@ The stock price graph displays:
 ## Files Modified
 
 ### Backend
-- **appController.cjs**: Added 3 new API endpoints
+- **appController_ora.cjs**: Added 3 new API endpoints
   - `GET /user-held-stocks/:email` - Get stocks held by a user
   - `GET /price-history/:ticker` - Get price history for a stock
   - `GET /stocks` - Get all available stocks

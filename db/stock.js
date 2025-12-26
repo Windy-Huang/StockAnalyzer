@@ -99,11 +99,11 @@ async function getPriceHistory(ticker) {
             ORDER BY timestamp ASC`, [ticker]);
 
         return result.rows.map(row => ({
-            date: row.timestamp,
-            open: row.open_price,
-            high: row.high_price,
-            low: row.low_price,
-            close: row.close_price,
+            timestamp: row.timestamp,
+            open_price: row.open_price,
+            high_price: row.high_price,
+            low_price: row.low_price,
+            close_price: row.close_price,
             volume: row.volume
         }));
     } catch (err) {

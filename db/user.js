@@ -7,7 +7,7 @@ async function fetchUser(email) {
         const result = await db.query(`SELECT * FROM Users WHERE email = $1`, [email]);
         if (result.rows.length === 0) {
             await db.query(`INSERT INTO Users VALUES ($1, NULL, NULL, 0)`, [email]);
-            return [];
+            return [[email, "", "", ""]];
         }
         return result.rows.map(r => [r.email, r.preferred_industry, r.preferred_exchange, r.show_recommendation]);
     } catch (err) {
