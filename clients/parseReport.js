@@ -1,11 +1,12 @@
 // Class for handling report parsing
+
 const fs = require("fs");
 const fetch = require("node-fetch");
 const { Parser } = require("htmlparser2");
 
-const dotenv = require("dotenv");
-const path = require("path");
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+const loadEnvFile = require('../utils/envUtil.js');
+const path = require('path');
+const envVariables = loadEnvFile(path.resolve(__dirname, './../.env'));
 
 // Return the appropriate key for the report table
 function matchForKeyword(str) {
@@ -119,10 +120,10 @@ async function parseFinancialStatementURL(url) {
     // Create appropriate request so EDGAR wouldn't mark it as spam
     const res = await fetch(url, {
         headers: {
-            "User-Agent": `Download10Q/1.0 (contact: ${process.env.EMAIL})`
+            "User-Agent": `Download10Q/1.0 (contact: ${envVariables.EMAIL})`
         }
     });
-    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+    if (!res.ok) throw new Error(`Failed to fetch at EDGAR: ${res.status}`);
 
     const stream = res.body;
     stream.setEncoding("utf8");

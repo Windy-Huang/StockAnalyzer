@@ -2,9 +2,24 @@
 
 const db = require('./db');
 
+async function getUninitializedStocks() {
+    const result = await db.query('SELECT ticker FROM Stock WHERE initialized = 0 ORDER BY ticker');
+    return result.rows.map(r => [r.ticker]);
+}
+
+async function getStaleStocks() {
+    const result = await db.query(`
+        SELECT ticker 
+        FROM Divident 
+        GROUP BY ticker 
+        HAVING MAX(timestamp) < CURRENT_DATE - INTERVAL '3 months'
+        ORDER BY MAX(timestamp)`);
+    return result.rows.map(r => [r.ticker]);
+}
+
 async function fetchAllStock() {
     try {
-        const result = await db.query('SELECT * FROM Stock ORDER BY ticker');
+        const result = await db.query('SELECT * FROM Stock WHERE initialized = 1 ORDER BY ticker');
         return result.rows.map(r => [r.ticker, r.name, r.country, r.industry, r.exchange, r.market_cap]);
     } catch (err) {
         return [];
@@ -156,6 +171,8 @@ async function delHolding(email, ticker) {
 }
 
 module.exports = {
+    getUninitializedStocks,
+    getStaleStocks,
     fetchAllStock,
     fetchPopularStock,
     fetchLeastPopularStock,

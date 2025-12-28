@@ -1,7 +1,7 @@
 // Configure the Postgres DB connection requirements
 
 const { Pool } = require('pg');
-const loadEnvFile = require('./../utils/envUtil.cjs');
+const loadEnvFile = require('../utils/envUtil');
 const path = require('path');
 const envVariables = loadEnvFile(path.resolve(__dirname, './../.env'));
 

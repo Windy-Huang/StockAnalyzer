@@ -8,7 +8,8 @@ const stockService = require('./db/stock');
 const userService = require('./db/user');
 const recommendationService = require('./db/recommendation');
 
-const {initializeWithSP500, getCompany10Q, getReportByAccessNum, getCompanyProfile, getHistoricalStockPrice} = require("./startupScript.cjs");
+const { initializeWithSP500 } = require("./clients/scripts");
+const { getCompanyProfile, getCompany10QAnnual } = require("./clients/finnhubClient");
 
 // Get recommendation (buy/hold/sell) and reasons for the stock
 router.post("/v1/recommendations/:ticker", async (req, res) => {
@@ -89,8 +90,7 @@ router.post("/v1/companies", async (req, res) => {
 
         const steps = [
             { task: initService.insertDBperCompany, api: getCompanyProfile, limit: 10 },
-            { task: initService.insertReportPerCompany, api: getCompany10Q, limit: 5 },
-            { task: initService.insertPricePerStock, api: getHistoricalStockPrice, limit: 1 }
+            { task: initService.insertReportPerCompany, api: getCompany10QAnnual, limit: 5 }
         ];
         for (const step of steps) {
             const rejected = await initializeWithSP500(step.task, step.api, step.limit);

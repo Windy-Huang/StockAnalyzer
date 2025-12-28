@@ -6,8 +6,7 @@ async function initiateDB() {
     try {
         // Drop existing tables
         const tables = [
-            'Derives', 'Contributes', 'AnalystRating', 'Holds', 'Users', 'Report', 'DebtEquity', 'PriceHistory',
-            'Updates', 'StockSplit', 'Divident', 'Stock', 'Exchange'];
+            'Derives', 'Contributes', 'AnalystRating', 'Holds', 'Users', 'Report', 'DebtEquity', 'PriceHistory', 'Divident', 'Stock', 'Exchange'];
         for (const table of tables) {
             await db.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
         }
@@ -26,27 +25,16 @@ async function initiateDB() {
                 industry VARCHAR(255),
                 exchange VARCHAR(255),
                 market_cap NUMERIC,
+                initialized INTEGER,
                 FOREIGN KEY (exchange) REFERENCES Exchange(exchange) ON DELETE CASCADE
             )`);
         await db.query(`
-            CREATE TABLE Updates(
-                action_id INTEGER,
-                ticker VARCHAR(255),
-                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
-                PRIMARY KEY(action_id, ticker)
-            )`);
-        await db.query(`
-            CREATE TABLE StockSplit(
-                action_id INTEGER PRIMARY KEY,
-                timestamp DATE,
-                split_ratio NUMERIC
-            )`);
-        await db.query(`
             CREATE TABLE Divident(
-                action_id INTEGER PRIMARY KEY,
+                ticker VARCHAR(255),
                 timestamp DATE,
                 amount_per_share NUMERIC,
-                divident_type VARCHAR(255)
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
+                PRIMARY KEY(ticker, timestamp)
             )`);
         await db.query(`
             CREATE TABLE PriceHistory(
@@ -56,9 +44,9 @@ async function initiateDB() {
                 high_price NUMERIC,
                 low_price NUMERIC,
                 close_price NUMERIC,
-                volume BIGINT,
                 ticker VARCHAR(255) NOT NULL,
-                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE
+                FOREIGN KEY (ticker) REFERENCES Stock(ticker) ON DELETE CASCADE,
+                UNIQUE (ticker, timestamp)
             )`);
         await db.query(`
             CREATE TABLE DebtEquity(
@@ -138,11 +126,11 @@ async function insertDBperCompany(data) {
         }
 
         await db.query(`
-            INSERT INTO Stock VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO Stock VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (ticker) DO NOTHING`,
-            [data["ticker"], data["name"], data["country"], data["finnhubIndustry"], data["exchange"], data["marketCapitalization"]]
+            [data["ticker"], data["name"], data["country"], data["finnhubIndustry"], data["exchange"], data["marketCapitalization"], 0]
         );
-        console.log("insert stock finished " + data["ticker"]);
+        console.log("Insert stock finished " + data["ticker"]);
         return true;
     } catch (err) {
         console.error("Insert failed : ", data["ticker"], err);
@@ -150,27 +138,68 @@ async function insertDBperCompany(data) {
     }
 }
 
-async function insertReportPerCompany(obj) {
-    try {
-        const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
+async function insertReportPerCompany(arr) {
+    let ticker = "";
+    let count = 0;
+    for (const obj of arr) {
+        try {
+            const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
+            ticker = data["ticker"];
 
-        await db.query(`
+            await db.query(`
             INSERT INTO DebtEquity VALUES ($1, $2, $3) 
             ON CONFLICT (equity, total_debt) DO NOTHING`,
-            [data["liabilities"], data["equity"], data["liabilities"] / data["equity"]]
-        );
-        const result = await db.query(`
+                [data["liabilities"], data["equity"], data["liabilities"] / data["equity"]]
+            );
+            const result = await db.query(`
             INSERT INTO Report VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [data["id"], new Date(data["timestamp"]), data["year"], data["revenue"], data["income"], data["eps"], data["liabilities"], data["equity"], data["ticker"]]
-        );
+                [data["id"], new Date(data["timestamp"]), data["year"], data["revenue"], data["income"], data["eps"], data["liabilities"], data["equity"], ticker]
+            );
 
-        console.log("insert report finished " + data["ticker"]);
-        return result.rowCount > 0;
+            if (result.rowCount > 0) count += 1;
+        } catch (err) {
+            if (err.code === '23505') throw { errorNum: 1 }; // PK violation
+            if (err.code === '23503') throw { errorNum: 2291 }; // FK violation
+            throw err;
+        }
+    }
+
+    console.log("Insert report finished " + ticker);
+    return count === arr.length;
+}
+
+async function insertDividentPerStock(obj) {
+    try {
+        const ticker = obj["ticker"];
+        const client = await db.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+            for (const [idx, data] of obj["data"]) {
+                const div = (data instanceof Map) ? Object.fromEntries(data) : data;
+                await client.query(`
+                    INSERT INTO Divident 
+                    VALUES ($1, $2, $3)
+                    ON CONFLICT (ticker, timestamp) DO NOTHING`,
+                    [
+                        ticker,
+                        new Date(div["ex_dividend_date"]),
+                        parseFloat(div["amount"])
+                    ]
+                );
+            }
+            await client.query('COMMIT');
+            console.log("insert Divident finished: " + ticker);
+            return true;
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
     } catch (err) {
-        console.error("Insert Report failed:", err);
-        if (err.code === '23505') throw { errorNum: 1 }; // PK violation
-        if (err.code === '23503') throw { errorNum: 2291 }; // FK violation
-        throw err;
+        console.error("Insert Divident failed : ", obj["ticker"], err);
+        return false;
     }
 }
 
@@ -184,17 +213,20 @@ async function insertPricePerStock(obj) {
             await client.query('BEGIN');
             for (const [date, info] of data) {
                 await client.query(`
-                    INSERT INTO PriceHistory (timestamp, open_price, high_price, low_price, close_price, volume, ticker)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                    INSERT INTO PriceHistory (timestamp, open_price, high_price, low_price, close_price, ticker)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    ON CONFLICT (ticker, timestamp) DO NOTHING`,
                     [
                         new Date(date),
                         parseFloat(info["1. open"]),
                         parseFloat(info["2. high"]),
                         parseFloat(info["3. low"]),
                         parseFloat(info["4. close"]),
-                        parseInt(info["5. volume"], 10),
                         ticker
                     ]
+                );
+                await client.query(`
+                    UPDATE Stock SET initialized = 1 WHERE ticker = $1`, [ticker]
                 );
             }
             await client.query('COMMIT');
@@ -212,9 +244,29 @@ async function insertPricePerStock(obj) {
     }
 }
 
+async function insertDailyPricePerStock(obj) {
+    const data = (obj instanceof Map) ? Object.fromEntries(obj) : obj;
+    const result = await db.query(`
+        UPDATE PriceHistory
+        SET open_price=$1, high_price=$2, low_price=$3, close_price=$4
+        WHERE ticker=$5 AND timestamp::date = $6::date`,
+        [data["open_price"], data["high_price"], data["low_price"], data["close_price"], data["ticker"], data["timestamp"]]
+    );
+
+    if (result.rowCount === 0) {
+        await db.query(`
+            INSERT INTO PriceHistory (timestamp, open_price, high_price, low_price, close_price, ticker)
+            VALUES ($1, $2, $3, $4, $5, $6)`,
+            [data["timestamp"], data["open_price"], data["high_price"], data["low_price"], data["close_price"], data["ticker"]]
+        );
+    }
+}
+
 module.exports = {
     initiateDB,
     insertDBperCompany,
     insertReportPerCompany,
-    insertPricePerStock
+    insertDividentPerStock,
+    insertPricePerStock,
+    insertDailyPricePerStock
 };
