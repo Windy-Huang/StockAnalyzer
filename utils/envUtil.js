@@ -22,8 +22,8 @@ function loadEnvFile(filePath) {
 
         return envVars;
     } else {
-        console.error(`.env file not found at ${filePath}`);
-        return {};
+        console.log('Azure deployment detected, returning system variables');
+        return process.env;
     }
 }
 

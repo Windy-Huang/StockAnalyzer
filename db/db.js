@@ -11,6 +11,7 @@ const pool = new Pool({
     host: envVariables.PG_HOST,
     port: envVariables.PG_PORT,
     database: envVariables.PG_DB,
+    ssl: envVariables.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

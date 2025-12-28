@@ -1,32 +1,25 @@
 const express = require('express');
+const cors = require('cors');
 const appController = require('./appController');
 
-// Load environment variables from .env file
-// Ensure your .env file has the required database credentials.
 const loadEnvFile = require('./utils/envUtil');
-const envVariables = loadEnvFile('./.env');
+const path = require('path');
+const envVariables = loadEnvFile(path.resolve(__dirname, '.env'));
 
 const app = express();
-const PORT = envVariables.PORT || 65534;  // Adjust the PORT if needed (e.g., if you encounter a "port already occupied" error)
+const PORT = envVariables.PORT || 65534;
 
-// Middleware setup
-app.use(express.static('public'));  // Serve static files from the 'public' directory
-app.use('/GUI', express.static('GUI'));  // Serve static files from the 'GUI' directory
-app.use(express.json());             // Parse incoming JSON payloads
-
-// Redirect root to GUI
+// Middleware
+app.use(cors());             // Allow requests from React Frontend
+app.use(express.json());     // Parse JSON
 app.get('/', (req, res) => {
-    res.redirect('/GUI/index.html');
+    res.status(200).send("Node Backend is Running!");
 });
 
-
-// mount the router
+// Mount the router (API routes)
 app.use('/', appController);
 
-
-// ----------------------------------------------------------
-// Starting the server
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
 });
-
