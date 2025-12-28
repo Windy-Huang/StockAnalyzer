@@ -8,7 +8,7 @@ const stockService = require('./db/stock');
 const userService = require('./db/user');
 const recommendationService = require('./db/recommendation');
 
-const { initializeWithSP500 } = require("./clients/scripts");
+const { initializeWithSP500, completeInitialization, dailyDivUpdate, dailyReportPriceUpdate } = require("./clients/scripts");
 const { getCompanyProfile, getCompany10QAnnual } = require("./clients/finnhubClient");
 
 // Get recommendation (buy/hold/sell) and reasons for the stock
@@ -102,6 +102,32 @@ router.post("/v1/companies", async (req, res) => {
         console.error(e);
         res.status(500).json({ success: false, error: e.message });
     }
+});
+
+// Scheduler endpoints
+router.post("/v1/schedulers/:time", async (req, res) => {
+    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) return res.status(401).send('Unauthorized');
+
+    const { time } = req.params;
+    if (time === "midnight") {
+        try {
+            const usedRate = await completeInitialization();
+            await dailyDivUpdate(usedRate);
+            res.status(200).send('Midnight Scheduler Update Complete');
+        } catch (err) {
+            console.error('Midnight Scheduler Failed:', err);
+            res.status(500).send('Update Failed');
+        }
+    } else if (time === 'afternoon') {
+        try {
+            await dailyReportPriceUpdate();
+            res.status(200).send('Afternoon Scheduler Update Complete');
+        } catch (err) {
+            console.error('Afternoon Scheduler Failed:', err);
+            res.status(500).send('Update Failed');
+        }
+    }
+    res.status(500).send('Incorrect time received');
 });
 
 // Insert new report for a company with access number
