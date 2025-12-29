@@ -7,8 +7,7 @@ const INITIAL_FIELDS = [
     { key: "open_price", label: "Open price: $" },
     { key: "high_price", label: "High price: $" },
     { key: "low_price", label: "Low price: $" },
-    { key: "close_price", label: "Close price: $" },
-    { key: "volume", label: "Volume: " }
+    { key: "close_price", label: "Close price: $" }
 ];
 
 function StockPage({ selectedTicker, setSelectedTicker, user }) {

@@ -108,7 +108,7 @@ async function getUserHeldStocksByDuration(email, durationFilter){
 async function getPriceHistory(ticker) {
     try {
         const result = await db.query(`
-            SELECT timestamp, open_price, high_price, low_price, close_price, volume
+            SELECT timestamp, open_price, high_price, low_price, close_price
             FROM PriceHistory
             WHERE ticker = $1
             ORDER BY timestamp ASC`, [ticker]);
@@ -118,8 +118,7 @@ async function getPriceHistory(ticker) {
             open_price: row.open_price,
             high_price: row.high_price,
             low_price: row.low_price,
-            close_price: row.close_price,
-            volume: row.volume
+            close_price: row.close_price
         }));
     } catch (err) {
         return [];
