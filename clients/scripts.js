@@ -6,9 +6,9 @@ const alphaVantage = require('./alphaVantageClient');
 const initService = require('./../db/initialization');
 const stockService = require('./../db/stock');
 
-const WAIT_TIME = 15000; // cooldown time before sending the next batch
+const WAIT_TIME = 20000; // cooldown time before sending the next batch
 const API_LIMIT = 25;
-const INIT_LIMIT = 10;
+const INIT_LIMIT = 8;
 
 async function initializeWithSP500(dbFunc, finnhubFunc, chunk) {
     const tickers = fs.readFileSync("./SelectedTicker.txt", "utf8").split("\n");

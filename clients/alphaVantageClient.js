@@ -14,10 +14,12 @@ async function getHistoricalStockPrice(ticker) {
     try {
         const url = `${ALPHAVANTAGE_BASE_URL}?function=TIME_SERIES_DAILY&symbol=${ticker}&apikey=${ALPHAVANTAGE_API_KEY}`;
         const response = await axios.get(url);
+        if (!response.data["Time Series (Daily)"]) throw new Error(JSON.stringify(response.data));
+
         const result = Object.entries(response.data["Time Series (Daily)"]);
         return {ticker: ticker, data: result};
     } catch (error) {
-        console.error('AlphaVantage API:', ticker, error);
+        console.error('AlphaVantage API stock:', ticker, error);
         return null;
     }
 }
@@ -27,10 +29,12 @@ async function getDivident(ticker) {
     try {
         const url = `${ALPHAVANTAGE_BASE_URL}?function=DIVIDENDS&symbol=${ticker}&apikey=${ALPHAVANTAGE_API_KEY}`;
         const response = await axios.get(url);
+        if (!response.data["data"]) throw new Error(JSON.stringify(response.data));
+
         const result = Object.entries(response.data["data"]);
         return {ticker: ticker, data: result};
     } catch (error) {
-        console.error('AlphaVantage API:', ticker, error);
+        console.error('AlphaVantage API divident:', ticker, error);
         return null;
     }
 }
