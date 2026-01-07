@@ -85,6 +85,8 @@ router.get('/v1/recommendations', async (req, res) => {
 
 // Insert new company into db
 router.post("/v1/companies", async (req, res) => {
+    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) return res.status(401).send('Unauthorized');
+
     try {
         if (!await initService.initiateDB()) throw new Error("DB Init Failed");
 
@@ -116,7 +118,7 @@ router.post("/v1/schedulers/:time", async (req, res) => {
             res.status(200).send('Midnight Scheduler Update Complete');
         } catch (err) {
             console.error('Midnight Scheduler Failed:', err);
-            res.status(500).send('Update Failed');
+            res.status(500).send(err.message);
         }
     } else if (time === 'afternoon') {
         try {
@@ -124,7 +126,7 @@ router.post("/v1/schedulers/:time", async (req, res) => {
             res.status(200).send('Afternoon Scheduler Update Complete');
         } catch (err) {
             console.error('Afternoon Scheduler Failed:', err);
-            res.status(500).send('Update Failed');
+            res.status(500).send(err.message);
         }
     }
     res.status(500).send('Incorrect time received');
@@ -228,7 +230,6 @@ router.put('/v1/users/:email/holdings/:ticker', async (req, res) => {
     } else {
         result = await stockService.delHolding(email, ticker);
     }
-    console.log('PUT /holding - email:', email, 'ticker:', ticker, 'add:', add, 'result:', result);
     res.json({ success: result });
 });
 

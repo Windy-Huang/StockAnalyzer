@@ -19,7 +19,12 @@ app.get('/', (req, res) => {
 // Mount the router (API routes)
 app.use('/', appController);
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/`);
-});
+// Start the server if node server.js is entered
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}/`);
+    });
+}
+
+// Export app to use in testing
+module.exports = app;
