@@ -8,13 +8,14 @@ const { initiateDB } = require('../db/initialization');
 describe('Integration Tests', function() {
 
     // Initialize fake db
-    before(async function() {
+    beforeEach(async function() {
         await initiateDB();
         await db.query(`INSERT INTO Exchange (exchange, currency) VALUES ('NASDAQ', 'USD')`);
         await db.query(`INSERT INTO Exchange (exchange, currency) VALUES ('NYSE', 'USD')`);
         await db.query(`INSERT INTO Stock (ticker, industry, exchange, initialized) VALUES ('AAPL', 'Technology', 'NASDAQ', 1)`);
         await db.query(`INSERT INTO Stock (ticker, industry, exchange, initialized) VALUES ('MSFT', 'Technology', 'NYSE', 0)`);
         await db.query(`INSERT INTO PriceHistory (timestamp, close_price, ticker) VALUES ('2026-01-01', 100.0, 'AAPL')`);
+        await db.query(`INSERT INTO Report (report_id, timestamp, ticker) VALUES ('test-report', '2026-01-01', 'AAPL')`);
         await db.query(`INSERT INTO Users (email) VALUES ('test')`);
         await db.query(`INSERT INTO Holds (email, ticker, hold_time) VALUES ('test', 'AAPL', '2025-01-01')`);
     });
@@ -37,6 +38,7 @@ describe('Integration Tests', function() {
         });
 
         it("Update user settings", async () => {
+            await request(app).post('/v1/users/a');
             const res = await request(app).put('/v1/users/a')
                 .set("Content-Type", "application/json")
                 .send({industry: "Technology", exchange: "", rec: "1"});
@@ -49,6 +51,7 @@ describe('Integration Tests', function() {
         });
 
         it("Delete user", async () => {
+            await request(app).post('/v1/users/a');
             const res = await request(app).delete('/v1/users/a');
             expect(res.status).to.equal(StatusCodes.OK);
             expect(res.body).to.have.property("success");
@@ -105,7 +108,7 @@ describe('Integration Tests', function() {
                 .send({fields: "close_price"});
             expect(res.status).to.equal(StatusCodes.OK);
             expect(res.body).to.have.property("data").that.is.an("array");
-            expect(res.body.data).to.deep.equal([["100.0"]]);
+            expect(res.body.data).to.deep.equal([[100]]);
         });
 
         it("Get user held stocks", async () => {
